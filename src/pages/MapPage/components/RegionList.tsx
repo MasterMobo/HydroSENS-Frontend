@@ -1,11 +1,10 @@
 import React from "react";
 import { Region } from "../types";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
 
-type RegionListProps = {
-    regions: Region[];
-};
-function RegionList(props: RegionListProps) {
-    const { regions } = props;
+function RegionList() {
+    const { regions } = useSelector((state: RootState) => state.regionState);
 
     return (
         <div className="absolute top-4 left-4 w-80 bg-white p-4 shadow-lg rounded-2xl z-1000">

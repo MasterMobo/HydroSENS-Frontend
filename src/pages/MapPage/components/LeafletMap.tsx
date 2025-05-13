@@ -2,20 +2,23 @@ import React, { useRef, useState } from "react";
 import { Region } from "../types";
 import { MapContainer, Polygon, TileLayer, useMap } from "react-leaflet";
 import { LatLngBounds, LatLng } from "leaflet";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../../redux/store";
+import { selectRegion } from "../../../redux/regionActions";
 
 // This component will handle map operations like fitting bounds
 function MapController({
-    selectedRegion,
-    coordinates,
+    selectedRegionIndex,
+    regions,
 }: {
-    selectedRegion: number | null;
-    coordinates: [number, number][][];
+    selectedRegionIndex: number | null;
+    regions: Region[];
 }) {
     const map = useMap();
 
     React.useEffect(() => {
-        if (selectedRegion !== null) {
-            const regionCoords = coordinates[selectedRegion];
+        if (selectedRegionIndex !== null) {
+            const regionCoords = regions[selectedRegionIndex].coordinates;
 
             // Create bounds from polygon coordinates
             const bounds = new LatLngBounds(
@@ -31,22 +34,20 @@ function MapController({
                 paddingBottomRight: [paddingY, paddingX],
             });
         }
-    }, [selectedRegion, coordinates, map]);
+    }, [selectedRegionIndex, regions, map]);
 
     return null;
 }
 
-type LeafletMapProps = {
-    regions: Region[];
-};
-
-function LeafletMap(props: LeafletMapProps) {
-    const { regions } = props;
-    const [selectedRegion, setSelectedRegion] = useState<number | null>(null);
+function LeafletMap() {
+    const dispatch = useDispatch();
+    const { regions, selectedRegionIndex } = useSelector(
+        (state: RootState) => state.regionState
+    );
 
     // Handler for polygon click
     const handleRegionClick = (index: number) => {
-        setSelectedRegion(index);
+        dispatch(selectRegion(index));
     };
 
     return (
@@ -65,8 +66,8 @@ function LeafletMap(props: LeafletMapProps) {
                     positions={region.coordinates}
                     pathOptions={{
                         color: region.color,
-                        fillOpacity: selectedRegion === index ? 0.5 : 0.2,
-                        weight: selectedRegion === index ? 3 : 1,
+                        fillOpacity: selectedRegionIndex === index ? 0.5 : 0.2,
+                        weight: selectedRegionIndex === index ? 3 : 1,
                     }}
                     eventHandlers={{
                         click: () => handleRegionClick(index),
@@ -74,10 +75,9 @@ function LeafletMap(props: LeafletMapProps) {
                 />
             ))}
 
-            {/* Controller to manage map operations */}
             <MapController
-                selectedRegion={selectedRegion}
-                coordinates={regions.map((r) => r.coordinates)}
+                selectedRegionIndex={selectedRegionIndex}
+                regions={regions}
             />
         </MapContainer>
     );
