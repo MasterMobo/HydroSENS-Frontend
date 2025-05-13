@@ -1,4 +1,4 @@
-import initialRegions from "../pages/MapPage/initialRegions";
+import initialRegions from "../data/initialRegions";
 import { Region } from "../types/region";
 import { RegionActionTypes, SELECT_REGION } from "./regionActions";
 

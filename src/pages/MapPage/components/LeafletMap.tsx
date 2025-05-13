@@ -54,7 +54,7 @@ function LeafletMap() {
         <MapContainer
             center={[52.52, 13.405]}
             zoom={12}
-            className="h-full w-full z-0"
+            className="absolute h-full w-full z-0"
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

@@ -7,7 +7,7 @@ function RegionList() {
     const { regions } = useSelector((state: RootState) => state.regionState);
 
     return (
-        <div className="absolute top-4 left-4 w-80 bg-white p-4 shadow-lg rounded-2xl z-1000">
+        <div className="absolute flex-col bg-white p-4 shadow-lg rounded-2xl">
             <h2 className="text-xl font-bold mb-4">Regions</h2>
             <ul>
                 {regions.map((region, index) => (
