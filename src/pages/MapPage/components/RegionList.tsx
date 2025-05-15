@@ -4,14 +4,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { Button } from "@/components/ui/button";
 import { selectRegion } from "@/redux/regionActions";
+import SelectedRegionModal from "./SelectedRegionModal";
 
 function RegionList() {
     const dispatch = useDispatch();
-    const { regions } = useSelector((state: RootState) => state.regionState);
+    const { regions, selectedRegionIndex } = useSelector(
+        (state: RootState) => state.regionState
+    );
 
     const handleRegionClick = (index: number) => {
         dispatch(selectRegion(index));
     };
+
+    if (selectedRegionIndex != null)
+        return <SelectedRegionModal region={regions[selectedRegionIndex]} />;
 
     return (
         <div className="absolute flex flex-col bg-white p-3 shadow-lg rounded-md gap-2 min-w-60 m-4">
