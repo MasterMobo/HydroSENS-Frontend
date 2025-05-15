@@ -60,6 +60,7 @@ function LeafletMap() {
         <MapContainer
             center={[52.52, 13.405]}
             zoom={12}
+            zoomControl={false}
             className="absolute h-full w-full z-0"
             zoomControl={false}
         >
