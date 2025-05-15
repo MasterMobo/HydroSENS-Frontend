@@ -61,6 +61,7 @@ function LeafletMap() {
             center={[52.52, 13.405]}
             zoom={12}
             className="absolute h-full w-full z-0"
+            zoomControl={false}
         >
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -85,7 +86,7 @@ function LeafletMap() {
                 selectedRegionIndex={selectedRegionIndex}
                 regions={regions}
             />
-            {/* <ZoomControl position="bottomleft" /> */}
+            <ZoomControl position="bottomleft" />
         </MapContainer>
     );
 }
