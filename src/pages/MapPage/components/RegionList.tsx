@@ -26,7 +26,7 @@ function RegionList() {
                 <Button className="bg-blue-600 m-0">+ Add</Button>
             </div>
 
-            <hr className="h-0.5 bg-gray-200 border-0 rounded-2xl" />
+            <hr className="h-[1.5px] bg-gray-200 border-0 rounded-2xl" />
 
             <ul>
                 {regions.map((region, index) => (

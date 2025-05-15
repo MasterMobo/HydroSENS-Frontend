@@ -26,7 +26,7 @@ function SelectedRegionModal({ region }: SelectedRegionModalProps) {
                 </Button>
             </div>
 
-            <hr className="h-0.5 bg-gray-200 border-0 rounded-2xl" />
+            <hr className="h-[1.5px] bg-gray-200 border-0 rounded-2xl" />
 
             <div className="flex flex-row justify-between p-2">
                 <div className="flex gap-3">
