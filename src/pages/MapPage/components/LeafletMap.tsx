@@ -1,6 +1,12 @@
 import React, { useRef, useState } from "react";
 import { Region } from "../types";
-import { MapContainer, Polygon, TileLayer, useMap } from "react-leaflet";
+import {
+    MapContainer,
+    Polygon,
+    TileLayer,
+    useMap,
+    ZoomControl,
+} from "react-leaflet";
 import { LatLngBounds, LatLng } from "leaflet";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
@@ -54,6 +60,7 @@ function LeafletMap() {
         <MapContainer
             center={[52.52, 13.405]}
             zoom={12}
+            zoomControl={false}
             className="absolute h-full w-full z-0"
         >
             <TileLayer
@@ -79,6 +86,7 @@ function LeafletMap() {
                 selectedRegionIndex={selectedRegionIndex}
                 regions={regions}
             />
+            <ZoomControl position="bottomleft" />
         </MapContainer>
     );
 }
