@@ -86,7 +86,7 @@ function LeafletMap() {
                 selectedRegionIndex={selectedRegionIndex}
                 regions={regions}
             />
-            {/* <ZoomControl position="bottomleft" /> */}
+            <ZoomControl position="bottomleft" />
         </MapContainer>
     );
 }
