@@ -1,13 +1,8 @@
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CircularProgressbarWithChildren,
-  buildStyles
+  buildStyles,
 } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { Leaf } from "lucide-react";
@@ -33,7 +28,7 @@ export interface GaugeCardProps {
   max?: number;
   description: string;
   icon?: React.ReactNode;
-  color?: string; // e.g. "#6b21a8" (Purple‑700)
+  color?: string;
   className?: string;
 }
 
@@ -44,64 +39,64 @@ export const GaugeCard: React.FC<GaugeCardProps> = ({
   max = 1,
   description,
   icon,
-  color = "#6b21a8", // violet‑700
+  color = "#6b21a8",
   className
 }) => {
-  // Normalise the reading to a percentage for the gauge library.
   const percent = ((value - min) / (max - min)) * 100;
-
-  // A very light background tint for the card, based on the primary colour.
-  const backgroundTint = `${color}15`; // ~8% opacity
-  const trailTint = `${color}30`; // ~18% opacity for the gauge track
+  const backgroundTint = `${color}10`; // 6% opacity
+  const trailTint = `${color}29`;      // 16% opacity
 
   return (
     <Card
-      className={
-        "rounded-2xl shadow-sm " +
-        (className ?? "")
-      }
+      className={`rounded-2xl border-0 shadow-sm ${className ?? ""}`}
       style={{ background: backgroundTint }}
     >
-      <CardHeader className="p-4 pb-0 flex-row items-center gap-2">
-        <div className="w-6 h-6 flex items-center justify-center rounded-full" style={{ background: trailTint }}>
-          {icon ?? <Leaf className="w-4 h-4" style={{ color }} />}
+      {/* Header */}
+      <CardHeader className="p-4 pb-0">
+        <div className="flex items-center gap-2">
+          <span
+            className="w-7 h-7 flex items-center justify-center rounded-full"
+            style={{ background: trailTint }}
+          >
+            {icon ?? <Leaf className="w-4 h-4" style={{ color }} />}
+          </span>
+          <CardTitle className="text-lg font-semibold" style={{ color }}>
+            {label}
+          </CardTitle>
         </div>
-        <CardTitle className="text-sm font-semibold" style={{ color }}>
-          {label}
-        </CardTitle>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center gap-2 p-4 pt-2">
-        {/* Gauge */}
-        <div className="w-28 -mb-2">
+      {/* Body */}
+      <CardContent className="flex flex-col items-center p-4 pt-2 gap-1">
+        <div className="relative w-28">
           <CircularProgressbarWithChildren
             value={percent}
             minValue={0}
             maxValue={100}
-            circleRatio={0.5} // half‑circle
+            circleRatio={0.5}
             styles={buildStyles({
-              rotation: 0.75, // 0.75 turns so that 0 is at left, 1 at right
+              rotation: 0.75,
               strokeLinecap: "round",
               pathColor: color,
               trailColor: trailTint,
-              textColor: "#0f172a", // slate‑900
-              pathTransitionDuration: 0.3
+              textColor: "#0f172a"
             })}
           >
-            <span className="text-sm font-medium text-slate-900">
+            <span className="text-lg font-semibold text-slate-900">
               {value}
             </span>
           </CircularProgressbarWithChildren>
+
+          {/* Min / Max */}
+          <span className="absolute left-0 bottom-3 text-sm leading-none text-slate-700 select-none">
+            {min}
+          </span>
+          <span className="absolute right-0 bottom-3 text-sm leading-none text-slate-700 select-none">
+            {max}
+          </span>
         </div>
 
-        {/* Min / Max labels */}
-        <div className="w-full flex justify-between text-xs leading-none text-slate-700">
-          <span>{min}</span>
-          <span>{max}</span>
-        </div>
-
-        {/* Description */}
-        <p className="text-xs text-center font-medium text-slate-800 pt-1">
+        <p className="pt-1 text-base font-medium text-center text-slate-800">
           {description}
         </p>
       </CardContent>
@@ -109,7 +104,7 @@ export const GaugeCard: React.FC<GaugeCardProps> = ({
   );
 };
 
-// Example usage (static data). Remove or replace with your own implementation.
+// Example card for quick visual test (remove in production)
 export const ExampleGaugeCard = () => (
   <GaugeCard
     label="NDVI"
