@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { deleteRegion, selectRegion } from "@/redux/regionActions";
 import SelectedRegionModal from "./SelectedRegionModal";
 import DeleteRegionButton from "./DeleteRegionButton";
+import EmptyRegionList from "./EmptyRegionList";
 
 function RegionList() {
     const dispatch = useDispatch();
@@ -19,6 +20,8 @@ function RegionList() {
 
     if (selectedRegionIndex != null)
         return <SelectedRegionModal region={regions[selectedRegionIndex]} />;
+
+    if (regions.length === 0) return <EmptyRegionList />;
 
     return (
         <div className="absolute flex flex-col bg-white p-3 shadow-lg rounded-md gap-2 min-w-60 m-4">
