@@ -1,9 +1,8 @@
 import * as React from "react";
-import { addDays, format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -15,9 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { setEndDate, setStartDate } from "@/redux/dateActions";
 
-export function DateRangePicker({
-    className,
-}: React.HTMLAttributes<HTMLDivElement>) {
+export function DateRangePicker() {
     const dispatch = useDispatch();
 
     // Get dates from Redux state
@@ -33,19 +30,19 @@ export function DateRangePicker({
         if (!startDate && !endDate) return undefined;
 
         return {
-            from: startDate || undefined,
-            to: endDate || undefined,
+            from: new Date(startDate) || undefined,
+            to: new Date(endDate) || undefined,
         };
     }, [startDate, endDate]);
 
     // Handle date changes from the calendar component
     const handleDateRangeChange = (range: DateRange | undefined) => {
         if (range?.from) {
-            dispatch(setStartDate(range.from));
+            dispatch(setStartDate(range.from.getTime()));
         }
 
         if (range?.to) {
-            dispatch(setEndDate(range.to));
+            dispatch(setEndDate(range.to.getTime()));
         }
     };
 
@@ -87,7 +84,7 @@ export function DateRangePicker({
                     <Calendar
                         initialFocus
                         mode="range"
-                        defaultMonth={startDate || undefined}
+                        defaultMonth={new Date(endDate)}
                         selected={dateRange}
                         onSelect={handleDateRangeChange}
                         numberOfMonths={2}

@@ -7,7 +7,7 @@ import RegionDashboard from "./components/RegionDashboard";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import DatePickerModal from "./components/DatePickerModal/DatePickerModal";
-import DateRangePicker from "./components/DatePickerModal/DateRangePicker";
+import DateRangePicker from "./components/DateRangePicker";
 
 import { AnimatePresence, motion } from "framer-motion";
 

@@ -1,20 +1,15 @@
+import { subDays } from "date-fns";
 import { DateActionTypes, SET_START_DATE, SET_END_DATE } from "./dateActions";
 
 // Define the shape of the date state
 export interface DateState {
-    startDate: Date;
-    endDate: Date;
+    startDate: number;
+    endDate: number;
 }
 
-const getSevenDaysAgo = (): Date => {
-    const date = new Date();
-    date.setDate(date.getDate() - 7);
-    return date;
-};
-
 const initialState: DateState = {
-    startDate: getSevenDaysAgo(),
-    endDate: new Date(),
+    startDate: subDays(new Date(), 7).getTime(),
+    endDate: new Date().getTime(),
 };
 
 // Reducer

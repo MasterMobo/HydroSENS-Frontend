@@ -13,6 +13,8 @@ import { RootState } from "../../../redux/store";
 import { selectRegion } from "../../../redux/regionActions";
 
 const recenter = (map: Map, regions: Region[]) => {
+    if (regions.length <= 0) return;
+
     const bounds = new LatLngBounds(
         regions.map((region) =>
             region.coordinates.map((coord) => new LatLng(coord[0], coord[1]))
