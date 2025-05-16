@@ -3,8 +3,19 @@ import { Region } from "../types";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { Button } from "@/components/ui/button";
-import { selectRegion } from "@/redux/regionActions";
+import { deleteRegion, selectRegion } from "@/redux/regionActions";
 import SelectedRegionModal from "./SelectedRegionModal";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function RegionList() {
     const dispatch = useDispatch();
@@ -14,6 +25,10 @@ function RegionList() {
 
     const handleRegionClick = (index: number) => {
         dispatch(selectRegion(index));
+    };
+
+    const handleDeleteRegionClick = (index: number) => {
+        dispatch(deleteRegion(index));
     };
 
     if (selectedRegionIndex != null)
@@ -33,23 +48,51 @@ function RegionList() {
                     <li
                         key={index}
                         className="flex justify-between items-start mb-3 p-2 rounded-sm hover:bg-gray-200 hover:cursor-pointer"
-                        onClick={() => handleRegionClick(index)}
                     >
-                        <div className="flex gap-3">
+                        <div
+                            className="flex gap-3"
+                            onClick={() => handleRegionClick(index)}
+                        >
                             <div
                                 className="w-4 h-4 rounded-full mt-1.5"
                                 style={{ backgroundColor: region.color }}
                             ></div>
-                            <div className="flex flex-col items-start">
+                            <div className="flex flex-col items-start min-w-40">
                                 <div className="text-sm">{region.name}</div>
                                 <div className="text-xs text-gray-500">
                                     {region.area} km²
                                 </div>
                             </div>
                         </div>
-                        <button className="text-gray-500 hover:text-red-500 ml-2 text-2xl">
-                            &times;
-                        </button>
+                        <AlertDialog>
+                            <AlertDialogTrigger className="text-gray-500 hover:text-red-500 ml-2 text-2xl">
+                                &times;
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                        Delete this region?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Are you sure you want to delete this
+                                        region?
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogAction
+                                        className="bg-red-500"
+                                        onClick={() =>
+                                            handleDeleteRegionClick(index)
+                                        }
+                                    >
+                                        Delete
+                                    </AlertDialogAction>
+                                    <AlertDialogCancel>
+                                        Cancel
+                                    </AlertDialogCancel>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </li>
                 ))}
             </ul>
