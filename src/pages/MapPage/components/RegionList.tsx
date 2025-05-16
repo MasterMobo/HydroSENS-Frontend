@@ -5,17 +5,7 @@ import { RootState } from "../../../redux/store";
 import { Button } from "@/components/ui/button";
 import { deleteRegion, selectRegion } from "@/redux/regionActions";
 import SelectedRegionModal from "./SelectedRegionModal";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import DeleteRegionButton from "./RegionListItem/DeleteRegionButton";
 
 function RegionList() {
     const dispatch = useDispatch();
@@ -25,10 +15,6 @@ function RegionList() {
 
     const handleRegionClick = (index: number) => {
         dispatch(selectRegion(index));
-    };
-
-    const handleDeleteRegionClick = (index: number) => {
-        dispatch(deleteRegion(index));
     };
 
     if (selectedRegionIndex != null)
@@ -64,35 +50,7 @@ function RegionList() {
                                 </div>
                             </div>
                         </div>
-                        <AlertDialog>
-                            <AlertDialogTrigger className="text-gray-500 hover:text-red-500 ml-2 text-2xl">
-                                &times;
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                        Delete this region?
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Are you sure you want to delete this
-                                        region?
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogAction
-                                        className="bg-red-500"
-                                        onClick={() =>
-                                            handleDeleteRegionClick(index)
-                                        }
-                                    >
-                                        Delete
-                                    </AlertDialogAction>
-                                    <AlertDialogCancel>
-                                        Cancel
-                                    </AlertDialogCancel>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
+                        <DeleteRegionButton index={index} />
                     </li>
                 ))}
             </ul>

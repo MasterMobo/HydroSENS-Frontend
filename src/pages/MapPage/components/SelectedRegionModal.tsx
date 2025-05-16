@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { selectRegion } from "@/redux/regionActions";
 import { Region } from "@/types/region";
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import DeleteRegionButton from "./RegionListItem/DeleteRegionButton";
+import { RootState } from "@/redux/store";
 
 interface SelectedRegionModalProps {
     region: Region;
@@ -13,6 +15,10 @@ function SelectedRegionModal({ region }: SelectedRegionModalProps) {
     const handleBackClick = () => {
         dispatch(selectRegion(null));
     };
+
+    const { selectedRegionIndex } = useSelector(
+        (state: RootState) => state.regionState
+    );
 
     return (
         <div className="absolute flex flex-col bg-white p-3 shadow-lg rounded-md gap-2 min-w-60 m-4">
@@ -41,9 +47,7 @@ function SelectedRegionModal({ region }: SelectedRegionModalProps) {
                         </div>
                     </div>
                 </div>
-                <button className="text-gray-500 hover:text-red-500 ml-2 text-2xl">
-                    &times;
-                </button>
+                <DeleteRegionButton index={selectedRegionIndex || 0} />
             </div>
         </div>
     );
