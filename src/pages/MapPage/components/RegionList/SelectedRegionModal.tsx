@@ -3,7 +3,7 @@ import { selectRegion } from "@/redux/regionActions";
 import { Region } from "@/types/region";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import DeleteRegionButton from "./RegionListItem/DeleteRegionButton";
+import DeleteRegionButton from "./DeleteRegionButton";
 import { RootState } from "@/redux/store";
 
 interface SelectedRegionModalProps {
@@ -25,7 +25,7 @@ function SelectedRegionModal({ region }: SelectedRegionModalProps) {
             <div className="w-full">
                 <Button
                     variant="link"
-                    className="p-0"
+                    className="p-0 text-black"
                     onClick={handleBackClick}
                 >
                     {"< Back"}
