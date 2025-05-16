@@ -42,7 +42,9 @@ function DeleteRegionButton({ index }: DeleteRegionButtonProps) {
                     >
                         Delete
                     </AlertDialogAction>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel className="bg-primary text-white">
+                        Cancel
+                    </AlertDialogCancel>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>

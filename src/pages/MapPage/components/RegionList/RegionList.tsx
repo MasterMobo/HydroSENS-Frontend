@@ -1,11 +1,11 @@
 import React from "react";
 import { Region } from "../types";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../../redux/store";
+import { RootState } from "../../../../redux/store";
 import { Button } from "@/components/ui/button";
 import { deleteRegion, selectRegion } from "@/redux/regionActions";
 import SelectedRegionModal from "./SelectedRegionModal";
-import DeleteRegionButton from "./RegionListItem/DeleteRegionButton";
+import DeleteRegionButton from "./DeleteRegionButton";
 
 function RegionList() {
     const dispatch = useDispatch();
@@ -24,7 +24,7 @@ function RegionList() {
         <div className="absolute flex flex-col bg-white p-3 shadow-lg rounded-md gap-2 min-w-60 m-4">
             <div className="flex flex-row justify-between content-center gap-5 p-2">
                 <h2 className="text-md font-bold align-middle">Regions</h2>
-                <Button className="bg-blue-600 m-0">+ Add</Button>
+                <Button className="m-0">+ Add</Button>
             </div>
 
             <hr className="h-[1.5px] bg-gray-200 border-0 rounded-2xl" />
