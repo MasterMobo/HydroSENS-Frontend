@@ -1,80 +1,43 @@
 import React from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { GaugeCard } from "./GaugeCard"; // adjust the path if GaugeCard lives elsewhere
-import {
-  Leaf,
-  Sprout,
-  Droplet,
-  CloudRain,
-  Thermometer,
-  Gauge
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GaugeCard } from "./GaugeCard";
+import { ChartCard } from "./ChartCard";
+import { Download, Star } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { selectRegion } from "../../../redux/regionActions";
+// Use gauges & chartData from the shared mock file (note the capital M)
+import { gauges, chartData } from "./MockData";
 
-const gauges = [
-  {
-    label: "NDVI",
-    value: 0.5,
-    min: 0,
-    max: 1,
-    description: "Moderately Healthy Vegetation",
-    icon: <Leaf className="w-4 h-4" />,
-    color: "#8b5cf6" // violet‑500
-  },
-  {
-    label: "Vegetation Fraction",
-    value: 0.1,
-    min: 0,
-    max: 1,
-    description: "Very Sparse Vegetation",
-    icon: <Sprout className="w-4 h-4" />,
-    color: "#4ade80" // green‑400
-  },
-  {
-    label: "Soil Fraction",
-    value: 0.4,
-    min: 0,
-    max: 1,
-    description: "Very Sparse Vegetation",
-    icon: <Droplet className="w-4 h-4" />,
-    color: "#60a5fa" // blue‑400
-  },
-  {
-    label: "Precipitation",
-    value: 44,
-    min: 0,
-    max: 100,
-    description: "Moderate Precipitation",
-    icon: <CloudRain className="w-4 h-4" />,
-    color: "#facc15" // yellow‑400
-  },
-  {
-    label: "Temperature",
-    value: 26.5,
-    min: -35,
-    max: 80,
-    description: "Mild Temperature",
-    icon: <Thermometer className="w-4 h-4" />,
-    color: "#fb923c" // orange‑400
-  },
-  {
-    label: "Curve Number",
-    value: 55,
-    min: 0,
-    max: 100,
-    description: "Low Runoff Curve Number",
-    icon: <Gauge className="w-4 h-4" />,
-    color: "#f472b6" // pink‑400
-  }
-];
-
+// ---------------------------------------------------------------------------
+// Region Dashboard – consumes external mock data, no local gauge definitions
+// ---------------------------------------------------------------------------
 function RegionDashboard() {
+  const dispatch = useDispatch();
+
+  /* ------------------------------------------------------------------ */
+  /* CLICK HANDLERS                                                     */
+  /* ------------------------------------------------------------------ */
+  const handleBack = () => {
+    // Clear the selected region; MapPage’s AnimatePresence will slide panel out
+    dispatch(selectRegion(null));
+  };
+
   return (
     <div className="absolute top-0 right-0 w-[50vw] h-full bg-gray-100 border-l shadow-lg">
-      <ScrollArea className="h-full"> {/* makes the dashboard body scrollable */}
+      <ScrollArea className="h-full">
         <div className="px-6 py-4 space-y-6">
+          {/* Header */}
           <header className="flex items-center justify-between">
-            <button className="text-sm font-medium text-slate-600 hover:underline">&lt; Back</button>
-            <h2 className="text-sm font-semibold text-slate-600">Average Values</h2>
+            <button
+              className="text-sm font-medium text-slate-600 hover:underline"
+              onClick={handleBack}
+            >
+              &lt; Back
+            </button>
+            <h2 className="text-sm font-semibold text-slate-600">
+              Average Values
+            </h2>
           </header>
 
           {/* Gauge grid */}
@@ -89,6 +52,30 @@ function RegionDashboard() {
                 description={g.description}
                 icon={g.icon}
                 color={g.color}
+              />
+            ))}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <Button variant="outline" className="flex-1 h-12 gap-2">
+              <Download className="w-4 h-4" /> Download Data
+            </Button>
+            <Button className="flex-1 h-12 gap-2">
+              <Star className="w-4 h-4" /> Generate Report
+            </Button>
+          </div>
+
+          {/* Charts */}
+          <div className="space-y-6">
+            {gauges.map((g) => (
+              <ChartCard
+                key={g.label}
+                label={g.label}
+                data={chartData[g.label]}
+                chartType={g.chartType}
+                color={g.color}
+                unit={g.unit}
               />
             ))}
           </div>
