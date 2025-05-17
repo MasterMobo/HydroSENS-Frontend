@@ -1,13 +1,13 @@
 import React from "react";
 import "leaflet/dist/leaflet.css";
-import RegionList from "./components/RegionList/RegionList";
-import LeafletMap from "./components/LeafletMap";
-import RegionDashboard from "./components/RegionDashboard";
 
-import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
-import DatePickerModal from "./components/DatePickerModal/DatePickerModal";
-import DateRangePicker from "./components/DateRangePicker";
+import LeafletMap       from "./components/LeafletMap";
+import RegionList       from "./components/RegionList/RegionList";
+import DateRangePicker  from "./components/DateRangePicker";
+import RegionDashboard  from "./components/RegionDashboard";
+
+import { useSelector }  from "react-redux";
+import { RootState }    from "../../redux/store";
 
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -18,24 +18,32 @@ function MapPage() {
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* left-hand map / polygons */}
+      {/* base map */}
       <LeafletMap />
 
       {/* region list (left sidebar) */}
       <RegionList />
 
-      {/* right-hand dashboard */}
+      {/* date-range picker — anchored at bottom-center of the map */}
+      <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
+        {/* pointer-events auto so picker is clickable but wrapper isn’t */}
+        <div className="pointer-events-auto">
+          <DateRangePicker />
+        </div>
+      </div>
+
+      {/* sliding dashboard (right) */}
       <AnimatePresence>
         {selectedRegionIndex != null && (
           <motion.div
-            key="dashboard"                     /* keeps component mounted when region changes */
-            initial={{ x: "100%" }}             /* start just off-screen right */
-            animate={{ x: 0 }}                  /* slide in */
-            exit={{ x: "100%" }}                /* slide out when Back sets index to null */
+            key="dashboard"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
             transition={{ type: "tween", duration: 0.35 }}
-            className="absolute inset-y-0 right-0 w-[50vw]" /* wrapper that slides */
+            className="absolute inset-y-0 right-0 w-[50vw]"
           >
-            <RegionDashboard />                 {/* dashboard content stays mounted */}
+            <RegionDashboard />
           </motion.div>
         )}
       </AnimatePresence>
