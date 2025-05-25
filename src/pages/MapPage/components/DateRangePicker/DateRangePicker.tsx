@@ -4,7 +4,6 @@ import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
     Popover,
     PopoverContent,
@@ -13,6 +12,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { setEndDate, setStartDate } from "@/redux/dateActions";
+import Calendar from "./Calendar";
 
 export function DateRangePicker() {
     const dispatch = useDispatch();
@@ -82,7 +82,7 @@ export function DateRangePicker() {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
-                        initialFocus
+                        autoFocus
                         mode="range"
                         defaultMonth={new Date(endDate)}
                         selected={dateRange}

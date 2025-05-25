@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 
 import LeafletMap       from "./components/LeafletMap";
 import RegionList       from "./components/RegionList/RegionList";
-import DateRangePicker  from "./components/DateRangePicker";
+import DateRangePicker  from "./components/DateRangePicker/DateRangePicker";
 import RegionDashboard  from "./components/RegionDashboard";
 
 import { useSelector }  from "react-redux";
