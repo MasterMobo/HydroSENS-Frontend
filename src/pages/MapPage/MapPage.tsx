@@ -1,7 +1,7 @@
 import React from "react";
 import "leaflet/dist/leaflet.css";
 
-import LeafletMap from "./components/LeafletMap";
+import LeafletMap from "./components/LeafletMap/LeafletMap";
 import RegionList from "./components/RegionList/RegionList";
 import DateRangePicker from "./components/DateRangePicker/DateRangePicker";
 import RegionDashboard from "./components/RegionDashboard";

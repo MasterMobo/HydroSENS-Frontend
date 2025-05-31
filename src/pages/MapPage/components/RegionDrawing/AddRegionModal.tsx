@@ -12,6 +12,7 @@ import { generateRandomColor } from "@/utils/colors";
 import { calculatePolygonArea } from "@/utils/map";
 import { setViewMode } from "@/redux/viewModeActions";
 import { ViewMode } from "@/types/viewMode";
+import LineBreak from "../LineBreak";
 
 function AddRegionModal() {
     const dispatch = useDispatch();
@@ -51,7 +52,7 @@ function AddRegionModal() {
     };
 
     return (
-        <div className="absolute right-0 bottom-0 w-80 p-6 border-r border-gray-200 rounded-lg bg-white flex flex-col z-100">
+        <div className="absolute m-4 w-80 p-4 border-r border-gray-200 rounded-lg bg-white flex flex-col z-100">
             <div>
                 {currentCoordinates.length > 0 && (
                     <div className="text-sm text-green-600 bg-green-50 p-3 rounded">
@@ -61,7 +62,17 @@ function AddRegionModal() {
             </div>
 
             <div className="space-y-3">
-                <div>
+                <div className="space-y-2">
+                    <Button
+                        variant="link"
+                        className="text-black p-0"
+                        onClick={handleClose}
+                    >
+                        {"< Back"}
+                    </Button>
+
+                    <LineBreak />
+
                     <label className="block text-sm font-medium mb-2">
                         Region Name
                     </label>

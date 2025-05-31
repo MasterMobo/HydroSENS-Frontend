@@ -7,6 +7,7 @@ import DeleteRegionButton from "./DeleteRegionButton";
 import EmptyRegionList from "./EmptyRegionList";
 import { setViewMode } from "@/redux/viewModeActions";
 import { ViewMode } from "@/types/viewMode";
+import LineBreak from "../LineBreak";
 
 function RegionList() {
     const dispatch = useDispatch();
@@ -38,7 +39,7 @@ function RegionList() {
                     </Button>
                 </div>
 
-                <hr className="h-[1.5px] bg-gray-200 border-0 rounded-2xl" />
+                <LineBreak />
 
                 <ul>
                     {regions.map((region, index) => (

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import React from "react";
+import LineBreak from "../LineBreak";
 
 interface EmptyRegionListProps {
     onAddClick: () => void;
@@ -15,7 +16,7 @@ function EmptyRegionList({ onAddClick }: EmptyRegionListProps) {
                 </Button>
             </div>
 
-            <hr className="h-[1.5px] bg-gray-200 border-0 rounded-2xl" />
+            <LineBreak />
 
             <div className="flex flex-col justify-center content-center text-center gap-2 p-2">
                 <div className="flex justify-center content-center">

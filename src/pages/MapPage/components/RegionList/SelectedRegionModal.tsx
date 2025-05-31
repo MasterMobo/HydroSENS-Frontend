@@ -5,6 +5,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import DeleteRegionButton from "./DeleteRegionButton";
 import { RootState } from "@/redux/store";
+import LineBreak from "../LineBreak";
 
 interface SelectedRegionModalProps {
     region: Region;
@@ -32,7 +33,7 @@ function SelectedRegionModal({ region }: SelectedRegionModalProps) {
                 </Button>
             </div>
 
-            <hr className="h-[1.5px] bg-gray-200 border-0 rounded-2xl" />
+            <LineBreak />
 
             <div className="flex flex-row justify-between p-2">
                 <div className="flex gap-3">
