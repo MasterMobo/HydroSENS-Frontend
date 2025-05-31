@@ -269,7 +269,7 @@ function ShapefileUploadModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+        <div className="fixed inset-0 bg-gray-700/50 flex items-center justify-center z-[200]">
             <div className="bg-white rounded-lg p-6 w-96 max-w-[90vw] shadow-xl">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Upload Shapefile</h3>
