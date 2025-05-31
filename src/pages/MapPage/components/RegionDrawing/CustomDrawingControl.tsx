@@ -7,7 +7,8 @@ import React, {
 } from "react";
 import { FeatureGroup } from "react-leaflet";
 import { useMap } from "react-leaflet";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import {
     handleShapeCreated,
     handleShapeEdited,
@@ -39,6 +40,11 @@ const CustomDrawingControl = forwardRef<
     const [currentDrawHandler, setCurrentDrawHandler] = useState<any>(null);
     const [editHandler, setEditHandler] = useState<any>(null);
 
+    // Get current coordinates from Redux state
+    const { currentCoordinates } = useSelector(
+        (state: RootState) => state.regionDrawingState
+    );
+
     // Initialize feature group
     useEffect(() => {
         if (!featureGroupRef.current) {
@@ -52,6 +58,51 @@ const CustomDrawingControl = forwardRef<
             }
         };
     }, [map]);
+
+    // Effect to display imported coordinates as a polygon on the map
+    useEffect(() => {
+        if (!featureGroupRef.current || currentCoordinates.length === 0) {
+            return;
+        }
+
+        // Clear existing layers
+        featureGroupRef.current.clearLayers();
+
+        // Create a polygon from the coordinates and add it to the map
+        if (currentCoordinates.length >= 3) {
+            // Convert coordinates to Leaflet LatLng format
+            const latLngs = currentCoordinates.map((coord) =>
+                L.latLng(coord[0], coord[1])
+            );
+
+            // Create polygon
+            const polygon = L.polygon(latLngs, {
+                color: "#97009c",
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0.2,
+            });
+
+            // Add to feature group
+            featureGroupRef.current.addLayer(polygon);
+
+            // Fit map to show the imported shape
+            const bounds = polygon.getBounds();
+            if (bounds.isValid()) {
+                map.fitBounds(bounds, { padding: [20, 20] });
+            }
+        } else if (currentCoordinates.length === 1) {
+            // Handle single point (from Point geometry)
+            const marker = L.marker(
+                L.latLng(currentCoordinates[0][0], currentCoordinates[0][1])
+            );
+            featureGroupRef.current.addLayer(marker);
+            map.setView(
+                L.latLng(currentCoordinates[0][0], currentCoordinates[0][1]),
+                15
+            );
+        }
+    }, [currentCoordinates, map]);
 
     // Handle drawing mode changes
     useEffect(() => {
