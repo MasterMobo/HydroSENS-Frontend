@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,8 +14,25 @@ import { setViewMode } from "@/redux/viewModeActions";
 import { ViewMode } from "@/types/viewMode";
 import LineBreak from "../LineBreak";
 import { useRegionSizeLimit } from "./AddRegionModal.hooks";
+import { Square, Circle, Edit3, Trash2 } from "lucide-react";
 
-function AddRegionModal() {
+export type DrawingMode = "polygon" | "rectangle" | "circle" | "edit" | null;
+
+interface AddRegionModalProps {
+    onDrawingModeChange: (mode: DrawingMode) => void;
+    currentDrawingMode: DrawingMode;
+    hasActiveShape: boolean;
+    onEditMode: () => void;
+    onDeleteShape: () => void;
+}
+
+function AddRegionModal({
+    onDrawingModeChange,
+    currentDrawingMode,
+    hasActiveShape,
+    onEditMode,
+    onDeleteShape,
+}: AddRegionModalProps) {
     const dispatch = useDispatch();
 
     const { regionName, currentCoordinates } = useSelector(
@@ -32,6 +49,15 @@ function AddRegionModal() {
 
     const handleRegionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setRegionName(e.target.value));
+    };
+
+    const handleDrawingModeClick = (mode: DrawingMode) => {
+        if (currentDrawingMode === mode) {
+            // Toggle off if clicking the same mode
+            onDrawingModeChange(null);
+        } else {
+            onDrawingModeChange(mode);
+        }
     };
 
     const handleSave = useCallback(() => {
@@ -51,6 +77,11 @@ function AddRegionModal() {
     const handleClose = () => {
         dispatch(resetDrawingState());
         dispatch(setViewMode(ViewMode.MAIN_VIEW));
+        onDrawingModeChange(null);
+    };
+
+    const handleDelete = () => {
+        onDeleteShape();
     };
 
     return (
@@ -67,31 +98,118 @@ function AddRegionModal() {
 
                     <LineBreak />
 
-                    <label className="block text-sm font-medium mb-2">
-                        Area Size Limit
-                    </label>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                        <div
-                            className=" h-2.5 rounded-full max-w-full"
-                            style={{
-                                width: areaSizePercent,
-                                background: isOverAreaSizeLimit
-                                    ? "red"
-                                    : "rgb(65 109 251)",
-                            }}
-                        ></div>
+                    {/* Drawing Tools Section */}
+                    <div className="space-y-3">
+                        <label className="block text-sm font-medium mb-2">
+                            Drawing Tools
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                            <Button
+                                variant={
+                                    currentDrawingMode === "polygon"
+                                        ? "default"
+                                        : "outline"
+                                }
+                                size="sm"
+                                onClick={() =>
+                                    handleDrawingModeClick("polygon")
+                                }
+                                className="flex flex-col items-center gap-1 h-16"
+                            >
+                                <Square size={20} />
+                                <span className="text-xs">Polygon</span>
+                            </Button>
+                            <Button
+                                variant={
+                                    currentDrawingMode === "rectangle"
+                                        ? "default"
+                                        : "outline"
+                                }
+                                size="sm"
+                                onClick={() =>
+                                    handleDrawingModeClick("rectangle")
+                                }
+                                className="flex flex-col items-center gap-1 h-16"
+                            >
+                                <Square size={20} />
+                                <span className="text-xs">Rectangle</span>
+                            </Button>
+                            <Button
+                                variant={
+                                    currentDrawingMode === "circle"
+                                        ? "default"
+                                        : "outline"
+                                }
+                                size="sm"
+                                onClick={() => handleDrawingModeClick("circle")}
+                                className="flex flex-col items-center gap-1 h-16"
+                            >
+                                <Circle size={20} />
+                                <span className="text-xs">Circle</span>
+                            </Button>
+                        </div>
                     </div>
 
-                    <div
-                        className="text-sm text-right "
-                        style={{
-                            color: isOverAreaSizeLimit ? "red" : "gray",
-                        }}
-                    >
-                        {areaSizeText}
-                    </div>
+                    {/* Edit Tools Section - Only show when there's an active shape */}
+                    {hasActiveShape && (
+                        <div className="space-y-2 ">
+                            <div className="flex gap-2">
+                                <Button
+                                    variant={
+                                        currentDrawingMode === "edit"
+                                            ? "default"
+                                            : "outline"
+                                    }
+                                    size="sm"
+                                    onClick={() =>
+                                        handleDrawingModeClick("edit")
+                                    }
+                                    className="flex items-center gap-2 flex-1"
+                                >
+                                    <Edit3 size={16} />
+                                    <span className="text-xs">Edit</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDelete}
+                                    className="flex items-center gap-2 flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 size={16} />
+                                    <span className="text-xs">Delete</span>
+                                </Button>
+                            </div>
 
-                    <label className="block text-sm font-medium mb-2">
+                            <div className="flex justify-between pt-2">
+                                <label className="block text-sm font-medium mb-2">
+                                    Area Size Limit
+                                </label>
+                                <div
+                                    className="text-sm "
+                                    style={{
+                                        color: isOverAreaSizeLimit
+                                            ? "red"
+                                            : "gray",
+                                    }}
+                                >
+                                    {areaSizeText}
+                                </div>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                <div
+                                    className=" h-2.5 rounded-full max-w-full"
+                                    style={{
+                                        width: areaSizePercent,
+                                        background: isOverAreaSizeLimit
+                                            ? "red"
+                                            : "rgb(65 109 251)",
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
+
+                    <label className="block text-sm font-medium mb-2 mt-5">
                         Region Name
                     </label>
                     <Input
