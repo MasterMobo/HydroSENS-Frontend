@@ -188,20 +188,8 @@ function AddRegionModal({
                                                 Edit
                                             </span>
                                         </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleDelete}
-                                            className="flex items-center gap-2 flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                            <Trash2 size={16} />
-                                            <span className="text-xs">
-                                                Delete
-                                            </span>
-                                        </Button>
                                     </>
                                 ) : (
-                                    // Edit mode - show Done and Cancel Edit buttons
                                     <>
                                         <Button
                                             variant="default"
@@ -211,22 +199,21 @@ function AddRegionModal({
                                         >
                                             <Check size={16} />
                                             <span className="text-xs">
-                                                Done
-                                            </span>
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={handleEditCancel}
-                                            className="flex items-center gap-2 flex-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
-                                        >
-                                            <X size={16} />
-                                            <span className="text-xs">
-                                                Cancel Edit
+                                                Confirm
                                             </span>
                                         </Button>
                                     </>
                                 )}
+
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleDelete}
+                                    className="flex items-center gap-2 flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                    <Trash2 size={16} />
+                                    <span className="text-xs">Delete</span>
+                                </Button>
                             </div>
 
                             <div className="flex justify-between pt-2">
