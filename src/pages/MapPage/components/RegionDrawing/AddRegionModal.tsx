@@ -15,7 +15,21 @@ import { ViewMode } from "@/types/viewMode";
 import LineBreak from "../LineBreak";
 import { useRegionSizeLimit } from "./AddRegionModal.hooks";
 import ShapefileUploadModal from "./ShapefileUploadModal";
-import { Square, Circle, Edit3, Trash2, Check, X, Upload } from "lucide-react";
+import {
+    Square,
+    Circle,
+    Edit3,
+    Trash2,
+    Check,
+    InfoIcon,
+    Upload,
+} from "lucide-react";
+import { MAX_REGION_AREA_KMSQ } from "@/constants";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export type DrawingMode = "polygon" | "rectangle" | "circle" | "edit" | null;
 
@@ -63,8 +77,12 @@ function AddRegionModal({
         }
     }, [currentCoordinates]);
 
-    const { areaSizePercent, areaSizeText, isOverAreaSizeLimit } =
-        useRegionSizeLimit(currentArea);
+    const {
+        shouldShowAreaLimit,
+        areaSizePercent,
+        areaSizeText,
+        isOverAreaSizeLimit,
+    } = useRegionSizeLimit(currentArea);
 
     const isEditMode = currentDrawingMode === "edit";
 
@@ -269,32 +287,51 @@ function AddRegionModal({
                                     </Button>
                                 </div>
 
-                                <div className="flex justify-between pt-2">
-                                    <label className="block text-sm font-medium mb-2">
-                                        Area Size Limit
-                                    </label>
-                                    <div
-                                        className="text-sm "
-                                        style={{
-                                            color: isOverAreaSizeLimit
-                                                ? "red"
-                                                : "gray",
-                                        }}
-                                    >
-                                        {areaSizeText}
+                                {shouldShowAreaLimit && (
+                                    <div>
+                                        <div className="flex justify-between pt-2">
+                                            <div className="flex gap-2 items-center justify-center">
+                                                <label className="block text-sm font-medium mb-2 align-middle mt-1">
+                                                    Area Size Limit
+                                                </label>
+                                                <Tooltip>
+                                                    <TooltipTrigger>
+                                                        <InfoIcon size="18px" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="z-100">
+                                                        <p>
+                                                            {`Your region can not
+                                                        exceed an area size of
+                                                        ${MAX_REGION_AREA_KMSQ} km²`}
+                                                        </p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </div>
+                                            <div
+                                                className="text-sm "
+                                                style={{
+                                                    color: isOverAreaSizeLimit
+                                                        ? "red"
+                                                        : "gray",
+                                                }}
+                                            >
+                                                {areaSizeText}
+                                            </div>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                            <div
+                                                className=" h-2.5 rounded-full max-w-full"
+                                                style={{
+                                                    width: areaSizePercent,
+                                                    background:
+                                                        isOverAreaSizeLimit
+                                                            ? "red"
+                                                            : "rgb(65 109 251)",
+                                                }}
+                                            ></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                    <div
-                                        className=" h-2.5 rounded-full max-w-full"
-                                        style={{
-                                            width: areaSizePercent,
-                                            background: isOverAreaSizeLimit
-                                                ? "red"
-                                                : "rgb(65 109 251)",
-                                        }}
-                                    ></div>
-                                </div>
+                                )}
                             </div>
                         )}
 
