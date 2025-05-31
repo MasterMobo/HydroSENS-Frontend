@@ -308,7 +308,7 @@ function AddRegionModal({
                                                 </Tooltip>
                                             </div>
                                             <div
-                                                className="text-sm "
+                                                className="text-sm mt-1"
                                                 style={{
                                                     color: isOverAreaSizeLimit
                                                         ? "red"
