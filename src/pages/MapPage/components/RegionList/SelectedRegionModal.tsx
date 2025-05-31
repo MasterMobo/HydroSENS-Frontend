@@ -44,7 +44,7 @@ function SelectedRegionModal({ region }: SelectedRegionModalProps) {
                     <div className="flex flex-col items-start">
                         <div className="text-sm">{region.name}</div>
                         <div className="text-xs text-gray-500">
-                            {region.area} km²
+                            {Math.round(region.area)} km²
                         </div>
                     </div>
                 </div>
