@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { selectRegion } from "../../../redux/regionActions";
 import { Region } from "@/types/region";
+import RegionPolygons from "./RegionPolygons";
 
 const recenter = (map: Map, regions: Region[]) => {
     if (regions.length <= 0) return;
@@ -80,20 +81,10 @@ function LeafletMap() {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {regions.map((region, index) => (
-                <Polygon
-                    key={index}
-                    positions={region.coordinates}
-                    pathOptions={{
-                        color: region.color,
-                        fillOpacity: selectedRegionIndex === index ? 0.5 : 0.2,
-                        weight: selectedRegionIndex === index ? 3 : 1,
-                    }}
-                    eventHandlers={{
-                        click: () => handleRegionClick(index),
-                    }}
-                />
-            ))}
+            <RegionPolygons
+                regions={regions}
+                onRegionClicked={handleRegionClick}
+            />
 
             <MapController
                 selectedRegionIndex={selectedRegionIndex}

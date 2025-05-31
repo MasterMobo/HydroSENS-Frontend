@@ -6,7 +6,7 @@ import { selectRegion } from "@/redux/regionActions";
 import SelectedRegionModal from "./SelectedRegionModal";
 import DeleteRegionButton from "./DeleteRegionButton";
 import EmptyRegionList from "./EmptyRegionList";
-import AddRegionModal from "./AddRegionModal";
+import AddRegionModal from "../RegionDrawing/AddRegionModal";
 
 function RegionList() {
     const dispatch = useDispatch();
