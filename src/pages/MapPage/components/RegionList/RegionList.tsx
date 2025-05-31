@@ -41,7 +41,7 @@ function RegionList() {
 
                 <LineBreak />
 
-                <ul>
+                <ul className="max-h-[40vh] overflow-auto">
                     {regions.map((region, index) => (
                         <li
                             key={index}
