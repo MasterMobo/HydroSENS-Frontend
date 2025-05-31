@@ -106,6 +106,7 @@ function AddRegionModal() {
                     <Button
                         onClick={handleSave}
                         disabled={
+                            isOverAreaSizeLimit ||
                             !regionName.trim() ||
                             currentCoordinates.length === 0
                         }
