@@ -26,6 +26,7 @@ function LeafletMap() {
         handleModeComplete,
         handleEditMode,
         handleDeleteShape,
+        handleFinishEdit,
     } = useDrawingControl();
 
     // Handler for polygon click
@@ -78,6 +79,7 @@ function LeafletMap() {
                     hasActiveShape={hasActiveShape}
                     onEditMode={handleEditMode}
                     onDeleteShape={handleDeleteShape}
+                    onFinishEdit={handleFinishEdit}
                 />
             )}
         </>

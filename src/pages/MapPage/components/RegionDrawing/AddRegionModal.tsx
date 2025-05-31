@@ -24,6 +24,7 @@ interface AddRegionModalProps {
     hasActiveShape: boolean;
     onEditMode: () => void;
     onDeleteShape: () => void;
+    onFinishEdit: () => void;
 }
 
 function AddRegionModal({
@@ -32,6 +33,7 @@ function AddRegionModal({
     hasActiveShape,
     onEditMode,
     onDeleteShape,
+    onFinishEdit,
 }: AddRegionModalProps) {
     const dispatch = useDispatch();
 
@@ -87,8 +89,8 @@ function AddRegionModal({
     };
 
     const handleEditDone = () => {
-        // Complete the edit mode
-        onDrawingModeChange(null);
+        // Complete the edit mode and save the edited coordinates
+        onFinishEdit();
     };
 
     const handleEditCancel = () => {

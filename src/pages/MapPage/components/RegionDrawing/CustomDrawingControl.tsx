@@ -1,4 +1,10 @@
-import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import React, {
+    useRef,
+    useEffect,
+    useState,
+    forwardRef,
+    useImperativeHandle,
+} from "react";
 import { FeatureGroup } from "react-leaflet";
 import { useMap } from "react-leaflet";
 import { useDispatch } from "react-redux";
@@ -10,7 +16,7 @@ import {
 import L from "leaflet";
 import "leaflet-draw";
 
-export type DrawingMode = 'polygon' | 'rectangle' | 'circle' | 'edit' | null;
+export type DrawingMode = "polygon" | "rectangle" | "circle" | "edit" | null;
 
 interface CustomDrawingControlProps {
     drawingMode: DrawingMode;
@@ -20,13 +26,13 @@ interface CustomDrawingControlProps {
 
 export interface CustomDrawingControlRef {
     clearShapes: () => void;
+    finishEdit: () => void;
 }
 
-const CustomDrawingControl = forwardRef<CustomDrawingControlRef, CustomDrawingControlProps>(({ 
-    drawingMode, 
-    onShapeCreated,
-    onModeComplete 
-}, ref) => {
+const CustomDrawingControl = forwardRef<
+    CustomDrawingControlRef,
+    CustomDrawingControlProps
+>(({ drawingMode, onShapeCreated, onModeComplete }, ref) => {
     const dispatch = useDispatch();
     const map = useMap();
     const featureGroupRef = useRef<L.FeatureGroup | null>(null);
@@ -64,42 +70,43 @@ const CustomDrawingControl = forwardRef<CustomDrawingControlRef, CustomDrawingCo
         let handler: any = null;
 
         switch (drawingMode) {
-            case 'polygon':
+            case "polygon":
                 handler = new L.Draw.Polygon(map, {
                     allowIntersection: false,
                     drawError: {
-                        color: '#e1e100',
-                        message: "<strong>Oh snap!</strong> you can't draw that!",
+                        color: "#e1e100",
+                        message:
+                            "<strong>Oh snap!</strong> you can't draw that!",
                     },
                     shapeOptions: {
-                        color: '#97009c',
+                        color: "#97009c",
                         weight: 2,
                         opacity: 0.8,
                         fillOpacity: 0.2,
                     },
                 });
                 break;
-            case 'rectangle':
+            case "rectangle":
                 handler = new L.Draw.Rectangle(map, {
                     shapeOptions: {
-                        color: '#97009c',
+                        color: "#97009c",
                         weight: 2,
                         opacity: 0.8,
                         fillOpacity: 0.2,
                     },
                 });
                 break;
-            case 'circle':
+            case "circle":
                 handler = new L.Draw.Circle(map, {
                     shapeOptions: {
-                        color: '#662d91',
+                        color: "#662d91",
                         weight: 2,
                         opacity: 0.8,
                         fillOpacity: 0.2,
                     },
                 });
                 break;
-            case 'edit':
+            case "edit":
                 if (featureGroupRef.current.getLayers().length > 0) {
                     handler = new L.EditToolbar.Edit(map, {
                         featureGroup: featureGroupRef.current,
@@ -109,20 +116,19 @@ const CustomDrawingControl = forwardRef<CustomDrawingControlRef, CustomDrawingCo
                 break;
         }
 
-        if (handler && drawingMode !== 'edit') {
+        if (handler && drawingMode !== "edit") {
             handler.enable();
             setCurrentDrawHandler(handler);
-        } else if (handler && drawingMode === 'edit') {
+        } else if (handler && drawingMode === "edit") {
             handler.enable();
         }
-
     }, [drawingMode, map]);
 
     // Set up event listeners
     useEffect(() => {
         const handleCreated = (e: any) => {
             const layer = e.layer;
-            
+
             // Clear previous shapes and add new layer
             if (featureGroupRef.current) {
                 featureGroupRef.current.clearLayers();
@@ -165,14 +171,29 @@ const CustomDrawingControl = forwardRef<CustomDrawingControlRef, CustomDrawingCo
         }
     }, [dispatch]);
 
-    // Expose clearShapes method to parent through ref
+    // Method to finish editing and save current state
+    const finishEdit = React.useCallback(() => {
+        if (featureGroupRef.current && editHandler) {
+            // Get all layers in the feature group and dispatch edited event
+            const layers = featureGroupRef.current;
+            if (layers.getLayers().length > 0) {
+                dispatch(handleShapeEdited(layers));
+            }
+            // Disable edit handler
+            editHandler.disable();
+            setEditHandler(null);
+        }
+    }, [dispatch, editHandler]);
+
+    // Expose methods to parent through ref
     React.useImperativeHandle(ref, () => ({
         clearShapes,
+        finishEdit,
     }));
 
     return <FeatureGroup ref={featureGroupRef} />;
 });
 
-CustomDrawingControl.displayName = 'CustomDrawingControl';
+CustomDrawingControl.displayName = "CustomDrawingControl";
 
 export default CustomDrawingControl;

@@ -45,6 +45,14 @@ export const useDrawingControl = () => {
         setCurrentDrawingMode(null);
     }, [dispatch]);
 
+    const handleFinishEdit = useCallback(() => {
+        // Finish editing and save the current state
+        if (drawingControlRef.current) {
+            drawingControlRef.current.finishEdit();
+        }
+        setCurrentDrawingMode(null);
+    }, []);
+
     const hasActiveShape = currentCoordinates.length > 0;
 
     return {
@@ -56,5 +64,6 @@ export const useDrawingControl = () => {
         handleModeComplete,
         handleEditMode,
         handleDeleteShape,
+        handleFinishEdit,
     };
 };
