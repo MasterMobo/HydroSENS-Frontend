@@ -1,3 +1,4 @@
+import { calculatePolygonArea } from "@/utils/map";
 import initialRegions from "../data/initialRegions";
 import { Region } from "../types/region";
 import {
@@ -6,6 +7,7 @@ import {
     DELETE_REGION,
     ADD_REGION,
 } from "./regionActions";
+import { generateRandomColor } from "@/utils/colors";
 
 // Define the shape of the region state
 export interface RegionState {
@@ -16,40 +18,6 @@ export interface RegionState {
 const initialState: RegionState = {
     regions: initialRegions,
     selectedRegionIndex: null,
-};
-
-// Utility function to generate random colors
-const generateRandomColor = () => {
-    const colors = [
-        "#FF6B6B",
-        "#4ECDC4",
-        "#45B7D1",
-        "#96CEB4",
-        "#FFEAA7",
-        "#DDA0DD",
-        "#98D8C8",
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-};
-
-// Utility function to calculate polygon area (simplified)
-const calculatePolygonArea = (coordinates: [number, number][]) => {
-    if (coordinates.length < 3) return 0;
-
-    let area = 0;
-    const n = coordinates.length;
-
-    for (let i = 0; i < n; i++) {
-        const j = (i + 1) % n;
-        area += coordinates[i][0] * coordinates[j][1];
-        area -= coordinates[j][0] * coordinates[i][1];
-    }
-
-    // Convert to approximate km² (this is a rough approximation)
-    area = Math.abs(area) / 2;
-    area = area * 12391; // Rough conversion factor
-
-    return Math.round(area * 100) / 100;
 };
 
 // Reducer

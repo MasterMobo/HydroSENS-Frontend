@@ -1,11 +1,19 @@
-import React, { useState, useRef, useMemo } from "react";
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MapContainer, TileLayer, FeatureGroup } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { addRegion } from "@/redux/regionActions";
+import { 
+    setRegionName, 
+    resetDrawingState,
+    handleShapeCreated,
+    handleShapeEdited,
+    handleShapeDeleted
+} from "@/redux/regionDrawingActions";
 import { Region } from "@/types/region";
+import { RootState } from "@/redux/store";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
 import { drawOptions } from "./drawOptions";
@@ -18,77 +26,37 @@ interface AddRegionModalProps {
 
 function AddRegionModal({ onClose }: AddRegionModalProps) {
     const dispatch = useDispatch();
-    const [regionName, setRegionName] = useState("");
-    const [currentCoordinates, setCurrentCoordinates] = useState<
-        [number, number][]
-    >([]);
     const featureGroupRef = useRef<any>(null);
 
-    // Handle shape creation
+    // Get state from Redux
+    const { regionName, currentCoordinates } = useSelector(
+        (state: RootState) => state.regionDrawingState
+    );
+
+    // Simple event handlers that just dispatch actions
     const handleCreated = (e: any) => {
         const layer = e.layer;
-        const coordinates: [number, number][] = [];
+        dispatch(handleShapeCreated(layer));
 
-        if (layer.getLatLngs) {
-            // For polygons and rectangles
-            const latLngs = Array.isArray(layer.getLatLngs()[0])
-                ? layer.getLatLngs()[0]
-                : layer.getLatLngs();
-            coordinates.push(
-                ...latLngs.map((latLng: any) => [latLng.lat, latLng.lng])
-            );
-        } else if (layer.getLatLng && layer.getRadius) {
-            // For circles, create polygon approximation
-            const center = layer.getLatLng();
-            const radius = layer.getRadius();
-            const points = 20;
-
-            for (let i = 0; i < points; i++) {
-                const angle = (i * 2 * Math.PI) / points;
-                const lat = center.lat + (radius / 111000) * Math.cos(angle);
-                const lng =
-                    center.lng +
-                    (radius /
-                        (111000 * Math.cos((center.lat * Math.PI) / 180))) *
-                        Math.sin(angle);
-                coordinates.push([lat, lng]);
-            }
-        }
-
-        setCurrentCoordinates(coordinates);
-
-        // Clear previous shapes
+        // Clear previous shapes and add new layer
         if (featureGroupRef.current) {
             featureGroupRef.current.clearLayers();
             featureGroupRef.current.addLayer(layer);
         }
     };
 
-    // Handle shape editing
     const handleEdited = (e: any) => {
-        const layers = e.layers;
-        layers.eachLayer((layer: any) => {
-            const coordinates: [number, number][] = [];
-
-            if (layer.getLatLngs) {
-                const latLngs = Array.isArray(layer.getLatLngs()[0])
-                    ? layer.getLatLngs()[0]
-                    : layer.getLatLngs();
-                coordinates.push(
-                    ...latLngs.map((latLng: any) => [latLng.lat, latLng.lng])
-                );
-            }
-
-            setCurrentCoordinates(coordinates);
-        });
+        dispatch(handleShapeEdited(e.layers));
     };
 
-    // Handle shape deletion
     const handleDeleted = () => {
-        setCurrentCoordinates([]);
+        dispatch(handleShapeDeleted());
     };
 
-    // Save the region
+    const handleRegionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        dispatch(setRegionName(e.target.value));
+    };
+
     const handleSave = () => {
         if (!regionName.trim() || currentCoordinates.length === 0) return;
 
@@ -100,10 +68,14 @@ function AddRegionModal({ onClose }: AddRegionModalProps) {
         };
 
         dispatch(addRegion(newRegion));
+        dispatch(resetDrawingState());
         onClose();
     };
 
-    // Get draw options based on selected mode
+    const handleCancel = () => {
+        dispatch(resetDrawingState());
+        onClose();
+    };
 
     return (
         <div className="absolute inset-0 flex items-center justify-center z-50">
@@ -126,7 +98,7 @@ function AddRegionModal({ onClose }: AddRegionModalProps) {
                             </label>
                             <Input
                                 value={regionName}
-                                onChange={(e) => setRegionName(e.target.value)}
+                                onChange={handleRegionNameChange}
                                 placeholder="Enter region name..."
                                 className="w-full"
                             />
@@ -145,7 +117,7 @@ function AddRegionModal({ onClose }: AddRegionModalProps) {
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={onClose}
+                                onClick={handleCancel}
                                 className="flex-1"
                             >
                                 Cancel
