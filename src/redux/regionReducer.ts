@@ -1,10 +1,13 @@
+import { calculatePolygonArea } from "@/utils/map";
 import initialRegions from "../data/initialRegions";
 import { Region } from "../types/region";
 import {
     RegionActionTypes,
     SELECT_REGION,
     DELETE_REGION,
+    ADD_REGION,
 } from "./regionActions";
+import { generateRandomColor } from "@/utils/colors";
 
 // Define the shape of the region state
 export interface RegionState {
@@ -50,6 +53,20 @@ export const regionReducer = (
                 ...state,
                 regions: updatedRegions,
                 selectedRegionIndex: newSelectedIndex,
+            };
+        }
+        case ADD_REGION: {
+            const newRegion = {
+                ...action.payload,
+                color: action.payload.color || generateRandomColor(),
+                area:
+                    action.payload.area ||
+                    calculatePolygonArea(action.payload.coordinates),
+            };
+
+            return {
+                ...state,
+                regions: [...state.regions, newRegion],
             };
         }
         default:
