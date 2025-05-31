@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useDispatch, useSelector } from "react-redux";
@@ -13,54 +13,48 @@ import { calculatePolygonArea } from "@/utils/map";
 import { setViewMode } from "@/redux/viewModeActions";
 import { ViewMode } from "@/types/viewMode";
 import LineBreak from "../LineBreak";
+import { useRegionSizeLimit } from "./AddRegionModal.hooks";
 
 function AddRegionModal() {
     const dispatch = useDispatch();
 
-    // Get state from Redux
     const { regionName, currentCoordinates } = useSelector(
         (state: RootState) => state.regionDrawingState
     );
 
-    // Simple event handlers that just dispatch actions
+    const currentArea = useMemo(
+        () => calculatePolygonArea(currentCoordinates),
+        [currentCoordinates]
+    );
+
+    const { areaSizePercent, areaSizeText, isOverAreaSizeLimit } =
+        useRegionSizeLimit(currentArea);
+
     const handleRegionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setRegionName(e.target.value));
     };
 
-    const handleSave = () => {
+    const handleSave = useCallback(() => {
         if (!regionName.trim() || currentCoordinates.length === 0) return;
 
         const newRegion: Region = {
             name: regionName.trim(),
             coordinates: currentCoordinates,
             color: generateRandomColor(),
-            area: calculatePolygonArea(currentCoordinates),
+            area: currentArea,
         };
 
         dispatch(addRegion(newRegion));
-        dispatch(resetDrawingState());
         handleClose();
-    };
-
-    const handleCancel = () => {
-        dispatch(resetDrawingState());
-        handleClose();
-    };
+    }, [currentArea, currentCoordinates, regionName]);
 
     const handleClose = () => {
+        dispatch(resetDrawingState());
         dispatch(setViewMode(ViewMode.MAIN_VIEW));
     };
 
     return (
         <div className="absolute m-4 w-80 p-4 border-r border-gray-200 rounded-lg bg-white flex flex-col z-100">
-            <div>
-                {currentCoordinates.length > 0 && (
-                    <div className="text-sm text-green-600 bg-green-50 p-3 rounded">
-                        Area: ~{calculatePolygonArea(currentCoordinates)} km²
-                    </div>
-                )}
-            </div>
-
             <div className="space-y-3">
                 <div className="space-y-2">
                     <Button
@@ -72,6 +66,30 @@ function AddRegionModal() {
                     </Button>
 
                     <LineBreak />
+
+                    <label className="block text-sm font-medium mb-2">
+                        Area Size Limit
+                    </label>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                        <div
+                            className=" h-2.5 rounded-full max-w-full"
+                            style={{
+                                width: areaSizePercent,
+                                background: isOverAreaSizeLimit
+                                    ? "red"
+                                    : "rgb(65 109 251)",
+                            }}
+                        ></div>
+                    </div>
+
+                    <div
+                        className="text-sm text-right "
+                        style={{
+                            color: isOverAreaSizeLimit ? "red" : "gray",
+                        }}
+                    >
+                        {areaSizeText}
+                    </div>
 
                     <label className="block text-sm font-medium mb-2">
                         Region Name
@@ -97,7 +115,7 @@ function AddRegionModal() {
                     </Button>
                     <Button
                         variant="outline"
-                        onClick={handleCancel}
+                        onClick={handleClose}
                         className="flex-1"
                     >
                         Cancel
