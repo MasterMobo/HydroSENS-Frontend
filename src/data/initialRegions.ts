@@ -1,3 +1,5 @@
+import { Region } from "@/types/region";
+
 const initialRegions: Region[] = [
     {
         name: "Corn Field A",

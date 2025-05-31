@@ -1,5 +1,4 @@
-import React, { useRef, useState } from "react";
-import { Region } from "../types";
+import React from "react";
 import {
     MapContainer,
     Polygon,
@@ -11,6 +10,7 @@ import { LatLngBounds, LatLng, Map } from "leaflet";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { selectRegion } from "../../../redux/regionActions";
+import { Region } from "@/types/region";
 
 const recenter = (map: Map, regions: Region[]) => {
     if (regions.length <= 0) return;
