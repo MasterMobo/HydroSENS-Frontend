@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../../redux/store";
 import { Button } from "@/components/ui/button";
@@ -6,39 +5,28 @@ import { selectRegion } from "@/redux/regionActions";
 import SelectedRegionModal from "./SelectedRegionModal";
 import DeleteRegionButton from "./DeleteRegionButton";
 import EmptyRegionList from "./EmptyRegionList";
-import AddRegionModal from "../RegionDrawing/AddRegionModal";
+import { setViewMode } from "@/redux/viewModeActions";
+import { ViewMode } from "@/types/viewMode";
 
 function RegionList() {
     const dispatch = useDispatch();
     const { regions, selectedRegionIndex } = useSelector(
         (state: RootState) => state.regionState
     );
-    const [showAddModal, setShowAddModal] = useState(false);
 
     const handleRegionClick = (index: number) => {
         dispatch(selectRegion(index));
     };
 
     const handleAddClick = () => {
-        setShowAddModal(true);
-    };
-
-    const handleCloseAddModal = () => {
-        setShowAddModal(false);
+        dispatch(setViewMode(ViewMode.DRAWING_VIEW));
     };
 
     if (selectedRegionIndex != null)
         return <SelectedRegionModal region={regions[selectedRegionIndex]} />;
 
     if (regions.length === 0)
-        return (
-            <>
-                <EmptyRegionList onAddClick={handleAddClick} />
-                {showAddModal && (
-                    <AddRegionModal onClose={handleCloseAddModal} />
-                )}
-            </>
-        );
+        return <EmptyRegionList onAddClick={handleAddClick} />;
 
     return (
         <>
@@ -78,8 +66,6 @@ function RegionList() {
                     ))}
                 </ul>
             </div>
-
-            {showAddModal && <AddRegionModal onClose={handleCloseAddModal} />}
         </>
     );
 }

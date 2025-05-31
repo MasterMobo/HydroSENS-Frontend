@@ -1,18 +1,16 @@
-import { ViewMode } from "@/types/viewMode";
-
 // Action Types
 export const SET_VIEW_MODE = "SET_VIEW_MODE";
 
 // Action Creators - modified to handle timestamps
-export const setViewMode = (mode: ViewMode) => ({
+export const setViewMode = (viewMode: string) => ({
     type: SET_VIEW_MODE,
-    payload: mode,
+    payload: viewMode,
 });
 
 // Action Types Definition - updated to use number (timestamp) instead of Date
 export interface SetViewModeAction {
     type: typeof SET_VIEW_MODE;
-    payload: ViewMode;
+    payload: string;
 }
 
 export type ViewModeActionTypes = SetViewModeAction;

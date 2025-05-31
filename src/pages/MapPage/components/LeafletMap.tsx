@@ -1,17 +1,13 @@
 import React from "react";
-import {
-    MapContainer,
-    Polygon,
-    TileLayer,
-    useMap,
-    ZoomControl,
-} from "react-leaflet";
+import { MapContainer, TileLayer, useMap, ZoomControl } from "react-leaflet";
 import { LatLngBounds, LatLng, Map } from "leaflet";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../redux/store";
 import { selectRegion } from "../../../redux/regionActions";
 import { Region } from "@/types/region";
 import RegionPolygons from "./RegionPolygons";
+import { ViewMode } from "@/types/viewMode";
+import RegionDrawingEditControl from "./RegionDrawing/RegionDrawingEditControl";
 
 const recenter = (map: Map, regions: Region[]) => {
     if (regions.length <= 0) return;
@@ -64,6 +60,7 @@ function LeafletMap() {
     const { regions, selectedRegionIndex } = useSelector(
         (state: RootState) => state.regionState
     );
+    const { viewMode } = useSelector((state: RootState) => state.viewModeState);
 
     // Handler for polygon click
     const handleRegionClick = (index: number) => {
@@ -83,13 +80,20 @@ function LeafletMap() {
             />
             <RegionPolygons
                 regions={regions}
-                onRegionClicked={handleRegionClick}
+                onRegionClicked={
+                    viewMode === ViewMode.MAIN_VIEW
+                        ? handleRegionClick
+                        : () => {}
+                }
             />
 
             <MapController
                 selectedRegionIndex={selectedRegionIndex}
                 regions={regions}
             />
+
+            {viewMode === ViewMode.DRAWING_VIEW && <RegionDrawingEditControl />}
+
             <ZoomControl position="bottomleft" />
         </MapContainer>
     );

@@ -3,11 +3,11 @@ import { SET_VIEW_MODE, ViewModeActionTypes } from "./viewModeActions";
 
 // Define the shape of the date state
 export interface ViewModeState {
-    mode: ViewMode;
+    viewMode: string;
 }
 
 const initialState: ViewModeState = {
-    mode: ViewMode.MAIN_VIEW,
+    viewMode: ViewMode.MAIN_VIEW,
 };
 
 // Reducer
@@ -19,7 +19,7 @@ export const viewModeReducer = (
         case SET_VIEW_MODE:
             return {
                 ...state,
-                mode: action.payload,
+                viewMode: action.payload,
             };
         default:
             return state;
