@@ -14,7 +14,7 @@ import { setViewMode } from "@/redux/viewModeActions";
 import { ViewMode } from "@/types/viewMode";
 import LineBreak from "../LineBreak";
 import { useRegionSizeLimit } from "./AddRegionModal.hooks";
-import { Square, Circle, Edit3, Trash2 } from "lucide-react";
+import { Square, Circle, Edit3, Trash2, Check, X } from "lucide-react";
 
 export type DrawingMode = "polygon" | "rectangle" | "circle" | "edit" | null;
 
@@ -46,6 +46,8 @@ function AddRegionModal({
 
     const { areaSizePercent, areaSizeText, isOverAreaSizeLimit } =
         useRegionSizeLimit(currentArea);
+
+    const isEditMode = currentDrawingMode === "edit";
 
     const handleRegionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         dispatch(setRegionName(e.target.value));
@@ -84,6 +86,17 @@ function AddRegionModal({
         onDeleteShape();
     };
 
+    const handleEditDone = () => {
+        // Complete the edit mode
+        onDrawingModeChange(null);
+    };
+
+    const handleEditCancel = () => {
+        // Cancel edit mode - this could potentially revert changes
+        // For now, just exit edit mode
+        onDrawingModeChange(null);
+    };
+
     return (
         <div className="absolute m-4 w-80 p-4 border-r border-gray-200 rounded-lg bg-white flex flex-col z-100">
             <div className="space-y-3">
@@ -115,6 +128,7 @@ function AddRegionModal({
                                     handleDrawingModeClick("polygon")
                                 }
                                 className="flex flex-col items-center gap-1 h-16"
+                                disabled={isEditMode}
                             >
                                 <Square size={20} />
                                 <span className="text-xs">Polygon</span>
@@ -130,6 +144,7 @@ function AddRegionModal({
                                     handleDrawingModeClick("rectangle")
                                 }
                                 className="flex flex-col items-center gap-1 h-16"
+                                disabled={isEditMode}
                             >
                                 <Square size={20} />
                                 <span className="text-xs">Rectangle</span>
@@ -143,6 +158,7 @@ function AddRegionModal({
                                 size="sm"
                                 onClick={() => handleDrawingModeClick("circle")}
                                 className="flex flex-col items-center gap-1 h-16"
+                                disabled={isEditMode}
                             >
                                 <Circle size={20} />
                                 <span className="text-xs">Circle</span>
@@ -154,30 +170,61 @@ function AddRegionModal({
                     {hasActiveShape && (
                         <div className="space-y-2 ">
                             <div className="flex gap-2">
-                                <Button
-                                    variant={
-                                        currentDrawingMode === "edit"
-                                            ? "default"
-                                            : "outline"
-                                    }
-                                    size="sm"
-                                    onClick={() =>
-                                        handleDrawingModeClick("edit")
-                                    }
-                                    className="flex items-center gap-2 flex-1"
-                                >
-                                    <Edit3 size={16} />
-                                    <span className="text-xs">Edit</span>
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleDelete}
-                                    className="flex items-center gap-2 flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                    <Trash2 size={16} />
-                                    <span className="text-xs">Delete</span>
-                                </Button>
+                                {!isEditMode ? (
+                                    // Normal mode - show Edit and Delete buttons
+                                    <>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                handleDrawingModeClick("edit")
+                                            }
+                                            className="flex items-center gap-2 flex-1"
+                                        >
+                                            <Edit3 size={16} />
+                                            <span className="text-xs">
+                                                Edit
+                                            </span>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleDelete}
+                                            className="flex items-center gap-2 flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        >
+                                            <Trash2 size={16} />
+                                            <span className="text-xs">
+                                                Delete
+                                            </span>
+                                        </Button>
+                                    </>
+                                ) : (
+                                    // Edit mode - show Done and Cancel Edit buttons
+                                    <>
+                                        <Button
+                                            variant="default"
+                                            size="sm"
+                                            onClick={handleEditDone}
+                                            className="flex items-center gap-2 flex-1 bg-green-600 hover:bg-green-700"
+                                        >
+                                            <Check size={16} />
+                                            <span className="text-xs">
+                                                Done
+                                            </span>
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleEditCancel}
+                                            className="flex items-center gap-2 flex-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                                        >
+                                            <X size={16} />
+                                            <span className="text-xs">
+                                                Cancel Edit
+                                            </span>
+                                        </Button>
+                                    </>
+                                )}
                             </div>
 
                             <div className="flex justify-between pt-2">
@@ -217,6 +264,7 @@ function AddRegionModal({
                         onChange={handleRegionNameChange}
                         placeholder="Enter region name..."
                         className="w-full"
+                        disabled={isEditMode}
                     />
                 </div>
 
@@ -224,6 +272,7 @@ function AddRegionModal({
                     <Button
                         onClick={handleSave}
                         disabled={
+                            isEditMode ||
                             isOverAreaSizeLimit ||
                             !regionName.trim() ||
                             currentCoordinates.length === 0
@@ -236,6 +285,7 @@ function AddRegionModal({
                         variant="outline"
                         onClick={handleClose}
                         className="flex-1"
+                        disabled={isEditMode}
                     >
                         Cancel
                     </Button>
