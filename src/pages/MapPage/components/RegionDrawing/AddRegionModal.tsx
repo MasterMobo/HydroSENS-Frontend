@@ -23,6 +23,7 @@ import {
     Check,
     InfoIcon,
     Upload,
+    Pentagon,
 } from "lucide-react";
 import { MAX_REGION_AREA_KMSQ } from "@/constants";
 import {
@@ -181,7 +182,7 @@ function AddRegionModal({
                                     className="flex flex-col items-center gap-1 h-16"
                                     disabled={isEditMode}
                                 >
-                                    <Square size={20} />
+                                    <Pentagon size={20} />
                                     <span className="text-xs">Polygon</span>
                                 </Button>
                                 <Button
