@@ -1,27 +1,109 @@
-import React from "react";
+import { useEffect, useMemo } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { GaugeCard } from "./GaugeCard";
 import { ChartCard } from "./ChartCard";
 import { Download, Star } from "lucide-react";
-import { useDispatch } from "react-redux";
-import { selectRegion } from "../../../redux/regionActions";
-// Use gauges & chartData from the shared mock file (note the capital M)
-import { gauges, chartData } from "./MockData";
 
-// ---------------------------------------------------------------------------
-// Region Dashboard – consumes external mock data, no local gauge definitions
-// ---------------------------------------------------------------------------
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { selectRegion } from "@/redux/regionActions";
+import { fetchHydrosens } from "@/redux/dashboardActions";
+import { HydrosensOutputs } from "@/types/hydrosens";
+
+/* ------------------------------------------------------------------ */
+/*  Colour / unit meta per metric key                                 */
+/* ------------------------------------------------------------------ */
+const metricMeta = {
+  ndvi:                  { label: "NDVI",                  color: "#8b5cf6", min: 0,   max: 1,   unit: undefined,     chartType: "line" },
+  "vegetation-fraction": { label: "Vegetation Fraction",   color: "#4ade80", min: 0,   max: 1,   unit: undefined,     chartType: "line" },
+  "soil-fraction":       { label: "Soil Fraction",         color: "#60a5fa", min: 0,   max: 1,   unit: undefined,     chartType: "line" },
+  precipitation:         { label: "Precipitation",         color: "#facc15", min: 0,   max: 100, unit: "mm",         chartType: "bar"  },
+  temperature:           { label: "Temperature",           color: "#fb923c", min: -35, max: 80,  unit: "°C",        chartType: "line" },
+  "curve-number":        { label: "Curve Number",          color: "#f472b6", min: 0,   max: 100, unit: undefined,     chartType: "line" },
+} as const;
+
+type MetricKey = keyof typeof metricMeta;
+
 function RegionDashboard() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const regionState = useSelector((s: RootState) => s.regionState);
+  const dateState = useSelector((s: RootState) => s.dateState);
+  const dashboard = useSelector((s: RootState) => s.dashboard);
 
-  /* ------------------------------------------------------------------ */
-  /* CLICK HANDLERS                                                     */
-  /* ------------------------------------------------------------------ */
+  /* Trigger fetch whenever region or date changes */
+  useEffect(() => {
+    if (
+      regionState.selectedRegionIndex != null &&
+      dateState.startDate &&
+      dateState.endDate
+    ) {
+      dispatch(fetchHydrosens());
+    }
+  }, [dispatch, regionState.selectedRegionIndex, dateState.startDate, dateState.endDate]);
+
+  /* Transform API outputs → gauges + chart series */
+  const { gauges, charts } = useMemo(() => {
+    const outputs: HydrosensOutputs = dashboard.outputs;
+    if (!outputs || !Object.keys(outputs).length) {
+      return { gauges: [], charts: {} as Record<string, { date: string; value: number }[]> };
+    }
+
+    // 1) Build time‐series arrays
+    const chartSeries: Record<string, { date: string; value: number }[]> = {};
+    (Object.keys(metricMeta) as MetricKey[]).forEach((k) => {
+      chartSeries[k] = [];
+    });
+    Object.entries(outputs).forEach(([date, metrics]) => {
+      (Object.keys(metricMeta) as MetricKey[]).forEach((k) => {
+        chartSeries[k].push({ date, value: (metrics as any)[k] });
+      });
+    });
+
+    // 2) Compute average over all returned dates (for gauges)
+    const dateKeys = Object.keys(outputs);
+    const nDates = dateKeys.length;
+    const gaugeArr = (Object.keys(metricMeta) as MetricKey[]).map((k) => {
+      let sum = 0;
+      for (const d of dateKeys) {
+        sum += (outputs[d] as any)[k];
+      }
+      const avg = sum / nDates;
+
+      // Round to two decimals, small values become 0.00
+      const rounded = Number(Math.abs(avg) < 0.01 ? 0 : avg.toFixed(2));
+
+      // Determine qualitative description
+      const { min, max, label, unit } = metricMeta[k];
+      const ratio = (avg - min) / (max - min);
+      let desc = "";
+      if (ratio < 0.25) desc = `Very Low ${label}`;
+      else if (ratio < 0.5) desc = `Low ${label}`;
+      else if (ratio < 0.75) desc = `Moderate ${label}`;
+      else desc = `High ${label}`;
+
+      return {
+        key:         k,
+        value:       rounded,
+        min:         min,
+        max:         max,
+        label:       label,
+        unit:        unit,          // include unit in gauge object
+        color:       metricMeta[k].color,
+        chartType:   metricMeta[k].chartType ?? "line",
+        description: desc,          // description has no unit
+      };
+    });
+
+    return { gauges: gaugeArr, charts: chartSeries };
+  }, [dashboard.outputs]);
+
+  /* Handler for the “Back” button */
   const handleBack = () => {
-    // Clear the selected region; MapPage’s AnimatePresence will slide panel out
     dispatch(selectRegion(null));
   };
+
+  const hasData = gauges.length > 0 && !dashboard.loading && !dashboard.error;
 
   return (
     <div className="absolute top-0 right-0 w-[50vw] h-full bg-gray-100 border-l shadow-lg">
@@ -35,50 +117,91 @@ function RegionDashboard() {
             >
               &lt; Back
             </button>
-            <h2 className="text-sm font-semibold text-slate-600">
-              Average Values
-            </h2>
+            <h2 className="text-sm font-semibold text-slate-600">Average Values</h2>
           </header>
 
-          {/* Gauge grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {gauges.map((g) => (
-              <GaugeCard
-                key={g.label}
-                label={g.label}
-                value={g.value}
-                min={g.min}
-                max={g.max}
-                description={g.description}
-                icon={g.icon}
-                color={g.color}
-              />
-            ))}
-          </div>
+          {/* Loading */}
+          {dashboard.loading && (
+            <div className="flex flex-col items-center justify-center h-64">
+              <span className="text-lg font-medium text-slate-700">Loading</span>
+              <div className="flex items-center space-x-1 mt-2">
+                <span
+                  className="w-2 h-2 bg-slate-600 rounded-full animate-ping"
+                  style={{ animationDelay: "0s" }}
+                />
+                <span
+                  className="w-2 h-2 bg-slate-600 rounded-full animate-ping"
+                  style={{ animationDelay: "0.2s" }}
+                />
+                <span
+                  className="w-2 h-2 bg-slate-600 rounded-full animate-ping"
+                  style={{ animationDelay: "0.4s" }}
+                />
+              </div>
+            </div>
+          )}
 
-          {/* Action buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-2">
-            <Button variant="outline" className="flex-1 h-12 gap-2">
-              <Download className="w-4 h-4" /> Download Data
-            </Button>
-            <Button className="flex-1 h-12 gap-2">
-              <Star className="w-4 h-4" /> Generate Report
-            </Button>
-          </div>
+          {/* No Data */}
+          {!dashboard.loading && !dashboard.error && gauges.length === 0 && (
+            <div className="flex items-center justify-center h-64">
+              <span className="text-lg text-slate-600">
+                There is no data for the chosen period.
+              </span>
+            </div>
+          )}
 
-          {/* Charts */}
-          <div className="space-y-6">
-            {gauges.map((g) => (
-              <ChartCard
-                key={g.label}
-                label={g.label}
-                data={chartData[g.label]}
-                chartType={g.chartType}
-                color={g.color}
-                unit={g.unit}
-              />
-            ))}
-          </div>
+          {/* Error */}
+          {dashboard.error && (
+            <p className="text-center text-red-600">{dashboard.error}</p>
+          )}
+
+          {/* Gauges */}
+          {hasData && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {gauges.map((g) => (
+                <GaugeCard
+                  key={g.key}
+                  // append unit only in title:
+                  label={g.unit ? `${g.label} (${g.unit})` : g.label}
+                  value={g.value}
+                  min={g.min}
+                  max={g.max}
+                  description={g.description}  // no unit in description
+                  icon={undefined}
+                  color={g.color}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          {hasData && (
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <Button variant="outline" className="flex-1 h-12 gap-2">
+                <Download className="w-4 h-4" /> Download Data
+              </Button>
+              <Button className="flex-1 h-12 gap-2">
+                <Star className="w-4 h-4" /> Generate Report
+              </Button>
+            </div>
+          )}
+
+          {/* Time‐series Charts */}
+          {hasData && (
+            <div className="space-y-6">
+              {gauges.map((g) => (
+                <ChartCard
+                  key={g.key}
+                  // also append unit in chart title
+                  label={g.unit ? `${g.label} (${g.unit})` : g.label}
+                  data={charts[g.key]}
+                  chartType={g.chartType}
+                  color={g.color}
+                  unit={g.unit}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </ScrollArea>
     </div>

@@ -1,4 +1,11 @@
-import { Leaf, Sprout, Droplet, CloudRain, Thermometer, Gauge } from "lucide-react";
+import {
+  Leaf,
+  Sprout,
+  Droplet,
+  CloudRain,
+  Thermometer,
+  Gauge,
+} from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Mock gauge definitions used in RegionDashboard & ChartCard
@@ -24,7 +31,7 @@ export const gauges: GaugeMeta[] = [
     description: "Moderately Healthy Vegetation",
     icon: <Leaf className="w-4 h-4" />,
     color: "#8b5cf6", // violet‑500
-    chartType: "line"
+    chartType: "line",
   },
   {
     label: "Vegetation Fraction",
@@ -34,7 +41,7 @@ export const gauges: GaugeMeta[] = [
     description: "Very Sparse Vegetation",
     icon: <Sprout className="w-4 h-4" />,
     color: "#4ade80", // green‑400
-    chartType: "line"
+    chartType: "line",
   },
   {
     label: "Soil Fraction",
@@ -44,7 +51,7 @@ export const gauges: GaugeMeta[] = [
     description: "Very Sparse Vegetation",
     icon: <Droplet className="w-4 h-4" />,
     color: "#60a5fa", // blue‑400
-    chartType: "line"
+    chartType: "line",
   },
   {
     label: "Precipitation",
@@ -55,7 +62,7 @@ export const gauges: GaugeMeta[] = [
     icon: <CloudRain className="w-4 h-4" />,
     color: "#facc15", // yellow‑400
     unit: "mm",
-    chartType: "bar"
+    chartType: "bar",
   },
   {
     label: "Temperature",
@@ -66,7 +73,7 @@ export const gauges: GaugeMeta[] = [
     icon: <Thermometer className="w-4 h-4" />,
     color: "#fb923c", // orange‑400
     unit: "°C",
-    chartType: "line"
+    chartType: "line",
   },
   {
     label: "Curve Number",
@@ -89,7 +96,7 @@ const dates = [
   "24/04/2024",
   "26/04/2024",
   "28/04/2024",
-  "30/04/2024"
+  "30/04/2024",
 ];
 
 const buildSeries = (values: number[]) =>
@@ -101,5 +108,5 @@ export const chartData: Record<string, { date: string; value: number }[]> = {
   "Soil Fraction": buildSeries([50, 40, 60, 35, 20, 55]),
   Precipitation: buildSeries([10, 5, 2, 15, 8, 25]),
   Temperature: buildSeries([22, 24, 26, 28, 27, 26]),
-  "Curve Number": buildSeries([45, 50, 55, 60, 53, 55])
+  "Curve Number": buildSeries([45, 50, 55, 60, 53, 55]),
 };
