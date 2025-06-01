@@ -4,8 +4,6 @@ import { HydrosensResponse } from "@/types/hydrosens";
 
 
 export async function postHydrosens(fd: FormDataLike) {
-  const { data } = await api.post<HydrosensResponse>("/analyze", fd, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+  const { data } = await api.post<HydrosensResponse>("/analyze", fd);
   return data;
 }

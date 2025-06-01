@@ -1,3 +1,4 @@
+// src/components/GaugeCard.tsx
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,14 +11,14 @@ import { Leaf } from "lucide-react";
 /**
  * GaugeCard
  * ---------------------------------
- * A reusable gauge‑style KPI card that matches the Pillar dashboard design.
+ * A reusable gauge-style KPI card that matches the Pillar dashboard design.
  *
  * Props:
  *  - label        (string)  : The metric name, e.g. "NDVI".
- *  - value        (number)  : Current reading.
+ *  - value        (number)  : Current reading (rounded to 2 decimals).
  *  - min          (number)  : Minimum value for the gauge (default: 0).
  *  - max          (number)  : Maximum value for the gauge (default: 1).
- *  - description  (string)  : A qualitative description based on the value.
+ *  - description  (string)  : Qualitative description based on the value (e.g. "Low NDVI").
  *  - icon         (ReactNode): Metric icon (defaults to <Leaf />).
  *  - color        (string)  : Primary HEX color for the gauge path & accent.
  */
@@ -42,9 +43,13 @@ export const GaugeCard: React.FC<GaugeCardProps> = ({
   color = "#6b21a8",
   className
 }) => {
+  // Calculate percentage for the gauge
   const percent = ((value - min) / (max - min)) * 100;
-  const backgroundTint = `${color}10`; // 6% opacity
-  const trailTint = `${color}29`;      // 16% opacity
+  const backgroundTint = `${color}10`; // ~6% opacity
+  const trailTint = `${color}29`;      // ~16% opacity
+
+  // Format the numeric display to 2 decimals
+  const displayValue = value.toFixed(2);
 
   return (
     <Card
@@ -83,7 +88,7 @@ export const GaugeCard: React.FC<GaugeCardProps> = ({
             })}
           >
             <span className="text-lg font-semibold text-slate-900">
-              {value}
+              {displayValue}
             </span>
           </CircularProgressbarWithChildren>
 
@@ -96,6 +101,7 @@ export const GaugeCard: React.FC<GaugeCardProps> = ({
           </span>
         </div>
 
+        {/* Qualitative description */}
         <p className="pt-1 text-base font-medium text-center text-slate-800">
           {description}
         </p>
@@ -103,12 +109,3 @@ export const GaugeCard: React.FC<GaugeCardProps> = ({
     </Card>
   );
 };
-
-// Example card for quick visual test (remove in production)
-export const ExampleGaugeCard = () => (
-  <GaugeCard
-    label="NDVI"
-    value={0.5}
-    description="Moderately Healthy Vegetation"
-  />
-);
