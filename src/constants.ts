@@ -1,0 +1,2 @@
+export const MAX_REGION_AREA_KMSQ = 32768;
+export const MAX_REGION_SIZE_BYTES = 50331648;
