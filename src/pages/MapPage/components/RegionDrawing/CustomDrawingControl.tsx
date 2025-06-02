@@ -16,6 +16,9 @@ import {
 } from "@/redux/regionDrawingActions";
 import L from "leaflet";
 import "leaflet-draw";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+window.type = true; // Fix rectangle leaflet-draw bug
 
 export type DrawingMode = "polygon" | "rectangle" | "circle" | "edit" | null;
 
