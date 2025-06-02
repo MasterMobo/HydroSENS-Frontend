@@ -37,8 +37,6 @@ function MapPage() {
                 </div>
             )}
 
-            {/* {viewMode === ViewMode.DRAWING_VIEW && <AddRegionModal />} */}
-
             {/* sliding dashboard (right) */}
             <AnimatePresence>
                 {selectedRegionIndex != null && (
