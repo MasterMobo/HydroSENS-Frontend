@@ -1,9 +1,10 @@
-import { FormDataLike } from "@/types/formdata";
 import { api } from "./client";
 import { HydrosensResponse } from "@/types/hydrosens";
 
 
-export async function postHydrosens(fd: FormDataLike) {
-  const { data } = await api.post<HydrosensResponse>("/analyze", fd);
+export async function postHydrosens(payload: any) {
+  const { data } = await api.post<HydrosensResponse>("/analyze", payload, {
+    headers: { "Content-Type": "application/json" },
+  });
   return data;
 }

@@ -74,6 +74,18 @@ const initialRegions: Region[] = [
       [52.49, 13.36],
     ],
   },
+  {
+    name: "IDK Where",
+    area: 287,
+    color: "#8000ff",
+    coordinates: 
+    [
+      [36.2, -120.5],
+      [36.2, -120.4], 
+      [36.3, -120.4],
+      [36.3, -120.5]
+  ],
+  },
 ];
 
 export default initialRegions;
