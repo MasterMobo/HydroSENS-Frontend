@@ -26,7 +26,6 @@ function getSignedArea(ring: [number, number][]): number {
  */
 function ensureClockwise(ring: [number, number][]): [number, number][] {
   const signedArea = getSignedArea(ring);
-  // If area is negative, ring is counter-clockwise, so reverse it
   if (signedArea < 0) {
     return [...ring].reverse();
   }
@@ -49,11 +48,15 @@ export async function regionToShapefileZip(
     );
   }
 
-  // 1) Reproject each [lat, lng] from EPSG:4326 → EPSG:32631 (x, y)
-  console.log('🗺️ Starting coordinate conversion from EPSG:4326 to EPSG:32631');
+  // 1) Reproject each [lat, lng] from EPSG:4326 → EPSG:32617 (x, y)
+  console.log("🗺️ Starting coordinate conversion from EPSG:4326 to EPSG:32617");
   const ring: [number, number][] = latLngCoords.map(([lat, lng], index) => {
-    const [x, y] = proj4("EPSG:4326", "EPSG:32631", [lng, lat]);
-    console.log(`  Point ${index + 1}: [${lat}, ${lng}] → [${x.toFixed(2)}, ${y.toFixed(2)}]`);
+    const [x, y] = proj4("EPSG:4326", "EPSG:32617", [lng, lat]);
+    console.log(
+      `  Point ${index + 1}: [${lat}, ${lng}] → [${x.toFixed(
+        2
+      )}, ${y.toFixed(2)}]`
+    );
     return [x, y];
   });
   console.log(`✅ Converted ${ring.length} coordinate pairs`);
@@ -76,7 +79,7 @@ export async function regionToShapefileZip(
         type: "Feature",
         geometry: {
           type: "Polygon",
-          coordinates: [clockwiseRing], // single exterior ring with correct orientation
+          coordinates: [clockwiseRing],
         },
         properties: {
           name: "Region",
@@ -86,8 +89,8 @@ export async function regionToShapefileZip(
     ],
   };
 
-  // 5) Options to match Mapbox example, with EPSG:32631 WKT in .prj
-  const utm31nWKT = `PROJCS["WGS 84 / UTM zone 31N",
+  // 5) Options to match Mapbox example, with EPSG:32617 WKT in .prj
+  const utm17nWKT = `PROJCS["WGS 84 / UTM zone 17N",
   GEOGCS["WGS 84",
     DATUM["WGS_1984",
       SPHEROID["WGS 84",6378137,298.257223563,
@@ -98,12 +101,12 @@ export async function regionToShapefileZip(
     AUTHORITY["EPSG","4326"]],
   PROJECTION["Transverse_Mercator"],
   PARAMETER["latitude_of_origin",0],
-  PARAMETER["central_meridian",3],
+  PARAMETER["central_meridian",-81],
   PARAMETER["scale_factor",0.9996],
   PARAMETER["false_easting",500000],
   PARAMETER["false_northing",0],
   UNIT["metre",1,AUTHORITY["EPSG","9001"]],
-  AUTHORITY["EPSG","32631"]]`;
+  AUTHORITY["EPSG","32617"]]`;
 
   const options = {
     folder: "regions_folder",
@@ -111,7 +114,7 @@ export async function regionToShapefileZip(
     outputType: "blob",
     compression: "DEFLATE",
     types: { polygon: "region_polygons" },
-    prj: utm31nWKT,
+    prj: utm17nWKT,
   };
 
   // 6) Use shpwrite.zip() with options → returns a Blob

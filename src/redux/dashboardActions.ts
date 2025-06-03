@@ -1,7 +1,6 @@
 import { ThunkAction } from "redux-thunk";
 import { RootState } from "@/redux/store";
 import { HydrosensOutputs } from "@/types/hydrosens";
-import { regionToShapefileZip } from "@/utils/regionToShapefile";
 import { AnyAction } from "@reduxjs/toolkit";
 import { postHydrosens } from "@/api/hydrosens";
 
@@ -21,7 +20,7 @@ export const fetchHydrosensFailure = (msg: string) => ({
   payload: msg,
 });
 
-/* Thunk that calls the API */
+/* Thunk that calls the API, sending lon/lat instead of a shapefile */
 export const fetchHydrosens =
   (): ThunkAction<void, RootState, unknown, AnyAction> =>
   async (dispatch, getState) => {
@@ -30,29 +29,42 @@ export const fetchHydrosens =
 
       const { regionState, dateState } = getState();
       const selectedIndex = regionState.selectedRegionIndex;
-      const region = regionState.regions[selectedIndex!];
+      if (selectedIndex == null) throw new Error("No region selected");
 
-      // Generate zipped shapefile
-      const zipBlob = await regionToShapefileZip(region.coordinates);
+      const region = regionState.regions[selectedIndex];
+      if (!region || !Array.isArray(region.coordinates) || region.coordinates.length === 0) {
+        throw new Error("Selected region has no coordinates");
+      }
+
+      /* Compute centroid of lat/lng polygon */
+      const coords: [number, number][] = region.coordinates as [number, number][];
+      let sumLat = 0;
+      let sumLng = 0;
+      coords.forEach(([lat, lng]) => {
+        sumLat += lat;
+        sumLng += lng;
+      });
+      const centroidLat = sumLat / coords.length;
+      const centroidLng = sumLng / coords.length;
 
       const fd = new FormData();
-      fd.append("shapefile", zipBlob, "region.zip");
+      fd.append("lon", String(centroidLng));
+      fd.append("lat", String(centroidLat));
+
       const formatLocal = (d: Date) => {
-        const year  = d.getFullYear();
+        const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, "0");
-        const day   = String(d.getDate()).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       };
-      
       fd.append("start_date", formatLocal(new Date(dateState.startDate)));
       fd.append("end_date",   formatLocal(new Date(dateState.endDate)));
       fd.append(
         "statistics",
         "curve-number, ndvi, precipitation, soil-fraction, temperature, vegetation-fraction"
       );
-      fd.append("amc", "100");
-      fd.append("p", "2");
-      console.log(formatLocal(new Date(dateState.startDate)), formatLocal(new Date(dateState.endDate)));
+      fd.append("amc", String(dateState.amc ?? 100));
+      fd.append("p",  String(dateState.p   ?? 2));
 
       const res = await postHydrosens(fd);
       dispatch(fetchHydrosensSuccess(res.outputs));
