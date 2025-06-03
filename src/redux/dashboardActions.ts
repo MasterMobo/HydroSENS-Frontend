@@ -53,7 +53,8 @@ export const fetchHydrosens =
         num_coordinates: coordinates.length,
         statistics: "curve-number, ndvi, precipitation, soil-fraction, temperature, vegetation-fraction"
       };
-
+      console.log(payload);
+      
       const res = await postHydrosens(payload);
       dispatch(fetchHydrosensSuccess(res));
     } catch (err: any) {

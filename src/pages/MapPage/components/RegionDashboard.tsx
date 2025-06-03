@@ -94,6 +94,8 @@ function RegionDashboard() {
         description: desc,          // description has no unit
       };
     });
+    console.log(gaugeArr);
+    
 
     return { gauges: gaugeArr, charts: chartSeries };
   }, [dashboard.outputs]);
@@ -142,13 +144,13 @@ function RegionDashboard() {
           )}
 
           {/* No Data */}
-          {!dashboard.loading && !dashboard.error && gauges.length === 0 && (
+          {/* {!dashboard.loading && !dashboard.error && gauges.length === 0 && (
             <div className="flex items-center justify-center h-64">
               <span className="text-lg text-slate-600">
                 There is no data for the chosen period.
               </span>
             </div>
-          )}
+          )} */}
 
           {/* Error */}
           {dashboard.error && (
