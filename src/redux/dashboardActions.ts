@@ -54,7 +54,7 @@ export const fetchHydrosens =
       };
 
       const res = await postHydrosens(payload);
-      dispatch(fetchHydrosensSuccess(res.outputs));
+      dispatch(fetchHydrosensSuccess(res));
     } catch (err: any) {
       dispatch(fetchHydrosensFailure(err.message || "Unknown error"));
     }

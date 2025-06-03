@@ -17,6 +17,15 @@ export interface HydrosensMetrics {
 export type HydrosensOutputs = Record<string, HydrosensMetrics>;
 
 export interface HydrosensResponse {
-  message: string;          // "Hydrosens run completed successfully"
-  outputs: HydrosensOutputs;
+  message: string;
+  parameters: {
+    amc: number;
+    coordinates: [number, number][];
+    crs: string;
+    end_date: string;
+    num_coordinates: number;
+    precipitation: number;
+    start_date: string;
+  };
+  results: HydrosensOutputs;
 }
