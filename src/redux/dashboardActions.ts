@@ -51,6 +51,7 @@ export const fetchHydrosens =
         end_date: formatLocal(new Date(dateState.endDate)),
         coordinates: coordinates,
         num_coordinates: coordinates.length,
+        statistics: "curve-number, ndvi, precipitation, soil-fraction, temperature, vegetation-fraction"
       };
 
       const res = await postHydrosens(payload);
