@@ -1,11 +1,15 @@
 import { calculatePolygonArea } from "@/utils/map";
+import { saveRegionsToStorage } from "@/utils/localStorage";
 import initialRegions from "../data/initialRegions";
 import { Region } from "../types/region";
 import {
     RegionActionTypes,
-    SELECT_REGION,
-    DELETE_REGION,
     ADD_REGION,
+    DELETE_REGION,
+    SELECT_REGION,
+    DESELECT_REGION,
+    LOAD_REGIONS,
+    CLEAR_ALL_REGIONS,
 } from "./regionActions";
 import { generateRandomColor } from "@/utils/colors";
 
@@ -20,6 +24,15 @@ const initialState: RegionState = {
     selectedRegionIndex: null,
 };
 
+// Helper function to save state to localStorage after mutations
+const saveStateToStorage = (regions: Region[]) => {
+    try {
+        saveRegionsToStorage(regions);
+    } catch (error) {
+        console.error("Failed to save regions to storage in reducer:", error);
+    }
+};
+
 // Reducer
 export const regionReducer = (
     state = initialState,
@@ -31,11 +44,19 @@ export const regionReducer = (
                 ...state,
                 selectedRegionIndex: action.payload,
             };
+        case DESELECT_REGION:
+            return {
+                ...state,
+                selectedRegionIndex: null,
+            };
         case DELETE_REGION: {
             // Create a new array without the region at the specified index
             const updatedRegions = state.regions.filter(
                 (_, index) => index !== action.payload
             );
+
+            // Save to localStorage
+            saveStateToStorage(updatedRegions);
 
             // Reset the selected region if we deleted the selected one
             let newSelectedIndex = state.selectedRegionIndex;
@@ -64,12 +85,35 @@ export const regionReducer = (
                     calculatePolygonArea(action.payload.coordinates),
             };
 
+            const newRegions = [...state.regions, newRegion];
+            
+            // Save to localStorage
+            saveStateToStorage(newRegions);
+
             return {
                 ...state,
-                regions: [...state.regions, newRegion],
+                regions: newRegions,
+            };
+        }
+        case LOAD_REGIONS:
+            return {
+                ...state,
+                regions: action.payload,
+                selectedRegionIndex: null, // Clear selection when loading
+            };
+        case CLEAR_ALL_REGIONS: {
+            // Save empty array to localStorage
+            saveStateToStorage([]);
+            
+            return {
+                ...state,
+                regions: [],
+                selectedRegionIndex: null,
             };
         }
         default:
             return state;
     }
 };
+
+export default regionReducer;
