@@ -1,6 +1,6 @@
 import * as React from "react";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
+import { CalendarIcon, AlertCircle } from "lucide-react"; // Import AlertCircle
 import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,8 +15,9 @@ import Calendar from "./Calendar";
 
 export function DateRangePicker() {
     const dispatch = useDispatch();
+    const [error, setError] = React.useState<string | null>(null);
 
-    // Get dates from Redux state
+    // Get dates and region index from Redux state
     const { startDate, endDate } = useSelector(
         (state: RootState) => state.dateState
     );
@@ -24,24 +25,40 @@ export function DateRangePicker() {
         (state: RootState) => state.regionState
     );
 
-    // Convert Redux dates to DateRange format for the ShadCN component
+    // Convert Redux dates to DateRange format, memoized for performance
     const dateRange: DateRange | undefined = React.useMemo(() => {
-        if (!startDate && !endDate) return undefined;
-
-        return {
-            from: new Date(startDate) || undefined,
-            to: new Date(endDate) || undefined,
-        };
+        const from = startDate ? new Date(startDate) : undefined;
+        const to = endDate ? new Date(endDate) : undefined;
+        if (from || to) {
+            return { from, to };
+        }
+        return undefined;
     }, [startDate, endDate]);
 
     // Handle date changes from the calendar component
     const handleDateRangeChange = (range: DateRange | undefined) => {
-        if (range?.from) {
-            dispatch(setStartDate(range.from.getTime()));
-        }
+        // Clear any previous errors when a new selection is made
+        setError(null);
 
-        if (range?.to) {
-            dispatch(setEndDate(range.to.getTime()));
+        // When a user selects the second date
+        if (range?.from && range?.to) {
+            // Check if the range is greater than 5 days
+            if (differenceInDays(range.to, range.from) > 5) {
+                dispatch(setStartDate(range.from.getTime()));
+                dispatch(setEndDate(range.to.getTime()));
+            } else {
+                // If not, set an error message
+                setError("The selected date range must be longer than 5 days.");
+                // Set only the start date and clear the end date
+                dispatch(setStartDate(range.from.getTime()));
+                dispatch(setEndDate(0));
+                // Clear the error message after 3 seconds
+                setTimeout(() => setError(null), 3000);
+            }
+        } else {
+            // When a user is selecting the first date
+            dispatch(setStartDate(range?.from?.getTime() || 0));
+            dispatch(setEndDate(0));
         }
     };
 
@@ -60,10 +77,10 @@ export function DateRangePicker() {
                     <Button
                         id="date"
                         variant={"outline"}
-                        className="font-normal py-6.5 rounded-3xl"
+                        className="font-normal py-6.5 rounded-3xl w-[300px] justify-start text-left"
                     >
-                        <div className="bg-primary p-2 rounded-sm mr-0.5">
-                            <CalendarIcon className=" h-4 w-4" color="white" />
+                        <div className="bg-primary p-2 rounded-sm mr-2">
+                            <CalendarIcon className="h-4 w-4" color="white" />
                         </div>
                         {dateRange?.from ? (
                             dateRange.to ? (
@@ -80,13 +97,21 @@ export function DateRangePicker() {
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
+                    {/* Nicely Formatted Error Message */}
+                    {error && (
+                        <div className="p-3 text-center text-sm text-red-600 bg-red-50 flex items-center justify-center rounded-t-md">
+                            <AlertCircle className="h-4 w-4 mr-2" />
+                            {error}
+                        </div>
+                    )}
                     <Calendar
-                        autoFocus
+                        initialFocus
                         mode="range"
-                        defaultMonth={new Date(endDate)}
+                        defaultMonth={dateRange?.from || new Date()}
                         selected={dateRange}
                         onSelect={handleDateRangeChange}
                         numberOfMonths={2}
+                        disabled={{ after: new Date() }}
                     />
                 </PopoverContent>
             </Popover>
