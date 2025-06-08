@@ -29,7 +29,7 @@ export const fetchHydrosens =
         try {
             dispatch(fetchHydrosensRequest());
 
-            const { regionState, dateState } = getState();
+            const { regionState, dateState, settings } = getState();
             const selectedIndex = regionState.selectedRegionIndex;
             const region = regionState.regions[selectedIndex!];
 
@@ -47,6 +47,9 @@ export const fetchHydrosens =
                 lat,
             ]);
 
+            // Build statistics string from selected metrics in settings
+            const statisticsString = settings.selectedMetrics.join(", ");
+
             const payload = {
                 amc: 2,
                 precipitation: 100.0,
@@ -55,8 +58,7 @@ export const fetchHydrosens =
                 end_date: formatLocal(new Date(dateState.endDate)),
                 coordinates: coordinates,
                 num_coordinates: coordinates.length,
-                statistics:
-                    "curve-number, ndvi, precipitation, soil-fraction, temperature, vegetation-fraction",
+                statistics: statisticsString,
             };
             console.log(payload);
 
