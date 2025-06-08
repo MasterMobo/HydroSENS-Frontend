@@ -1,12 +1,8 @@
-export const generateRandomColor = () => {
-    const colors = [
-        "#FF6B6B",
-        "#4ECDC4",
-        "#45B7D1",
-        "#96CEB4",
-        "#FFEAA7",
-        "#DDA0DD",
-        "#98D8C8",
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
+export const generateRandomColor = (): string => {
+    // Generate RGB values between 0-180 instead of 0-255 to avoid light colors
+    const r = Math.floor(Math.random() * 180);
+    const g = Math.floor(Math.random() * 180);
+    const b = Math.floor(Math.random() * 180);
+    
+    return `rgb(${r}, ${g}, ${b})`;
 };
