@@ -3,8 +3,8 @@ import { RootState } from "@/redux/store";
 import { HydrosensOutputs } from "@/types/hydrosens";
 import { regionToShapefileZip } from "@/utils/regionToShapefile";
 import { AnyAction } from "@reduxjs/toolkit";
-// import { postHydrosens } from "@/api/hydrosens";
-import { postHydrosens } from "@/api/mocks/hydrosens"; // Use this if you don't want to connect to BE
+import { postHydrosens } from "@/api/hydrosens";
+// import { postHydrosens } from "@/api/mocks/hydrosens"; // Use this if you don't want to connect to BE
 
 /* Action types */
 export const FETCH_HYDROSENS_REQUEST = "FETCH_HYDROSENS_REQUEST";
