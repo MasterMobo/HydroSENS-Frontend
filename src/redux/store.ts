@@ -1,25 +1,30 @@
-import { combineReducers } from "redux"
-import { configureStore } from "@reduxjs/toolkit"
-import { regionReducer } from "./regionReducer"
-import { dateReducer } from "./dateReducers"
-import { viewModeReducer } from "./viewModeReducers"
-import { regionDrawingReducer } from "./regionDrawingReducer"
-import { dashboardReducer } from "./dashboardReducer"
-import { settingsReducer } from "./settingsReducer"
+import { combineReducers } from "redux";
+import { configureStore } from "@reduxjs/toolkit";
+import { regionReducer } from "./regionReducer";
+import { dateReducer } from "./dateReducers";
+import { viewModeReducer } from "./viewModeReducers";
+import { regionDrawingReducer } from "./regionDrawingReducer";
+import { dashboardReducer } from "./dashboardReducer";
+import { settingsReducer } from "./settingsReducer";
+import { settingsMiddleware } from "./middlewares/settingsMiddleware";
 
-// Combine all reducers (currently just one)
+// Combine all reducers
 const rootReducer = combineReducers({
-  regionState: regionReducer,
-  dateState: dateReducer,
-  viewModeState: viewModeReducer,
-  regionDrawingState: regionDrawingReducer,
-  dashboard: dashboardReducer,
-  settings: settingsReducer,
-})
+    regionState: regionReducer,
+    dateState: dateReducer,
+    viewModeState: viewModeReducer,
+    regionDrawingState: regionDrawingReducer,
+    dashboard: dashboardReducer,
+    settings: settingsReducer,
+});
 
-// Create the store
-export const store = configureStore({ reducer: rootReducer })
+// Create the store with settings middleware
+export const store = configureStore({
+    reducer: rootReducer,
+    middleware: (getDefaultMiddleware) =>
+        getDefaultMiddleware().concat(settingsMiddleware),
+});
 
 // Define the RootState type for TypeScript
-export type RootState = ReturnType<typeof rootReducer>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof rootReducer>;
+export type AppDispatch = typeof store.dispatch;
