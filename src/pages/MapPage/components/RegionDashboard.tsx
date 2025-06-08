@@ -11,6 +11,7 @@ import { selectRegion } from "@/redux/regionActions";
 import { fetchHydrosens } from "@/redux/dashboardActions";
 import { HydrosensOutputs } from "@/types/hydrosens";
 import DownloadCSVButton from "./DownloadCSVButton";
+import { MetricKey } from "@/redux/settingsActions";
 
 /* ------------------------------------------------------------------ */
 /*  Colour / unit meta per metric key                                 */
@@ -66,13 +67,12 @@ const metricMeta = {
     },
 } as const;
 
-type MetricKey = keyof typeof metricMeta;
-
 function RegionDashboard() {
     const dispatch = useDispatch<AppDispatch>();
     const regionState = useSelector((s: RootState) => s.regionState);
     const dateState = useSelector((s: RootState) => s.dateState);
     const dashboard = useSelector((s: RootState) => s.dashboard);
+    const settings = useSelector((s: RootState) => s.settings);
 
     /* Trigger fetch whenever region or date changes */
     useEffect(() => {
@@ -90,7 +90,7 @@ function RegionDashboard() {
         dateState.endDate,
     ]);
 
-    /* Transform API outputs → gauges + chart series */
+    /* Transform API outputs → gauges + chart series, filtered by selected metrics */
     const { gauges, charts } = useMemo(() => {
         const outputs: HydrosensOutputs = dashboard.outputs;
         if (!outputs || !Object.keys(outputs).length) {
@@ -100,22 +100,26 @@ function RegionDashboard() {
             };
         }
 
-        // 1) Build time‐series arrays
+        // Get only the selected metrics from settings
+        const selectedMetrics = settings.selectedMetrics;
+
+        // 1) Build time‐series arrays (only for selected metrics)
         const chartSeries: Record<string, { date: string; value: number }[]> =
             {};
-        (Object.keys(metricMeta) as MetricKey[]).forEach((k) => {
+        selectedMetrics.forEach((k) => {
             chartSeries[k] = [];
         });
+
         Object.entries(outputs).forEach(([date, metrics]) => {
-            (Object.keys(metricMeta) as MetricKey[]).forEach((k) => {
+            selectedMetrics.forEach((k) => {
                 chartSeries[k].push({ date, value: (metrics as any)[k] });
             });
         });
 
-        // 2) Compute average over all returned dates (for gauges)
+        // 2) Compute average over all returned dates (for gauges, only selected metrics)
         const dateKeys = Object.keys(outputs);
         const nDates = dateKeys.length;
-        const gaugeArr = (Object.keys(metricMeta) as MetricKey[]).map((k) => {
+        const gaugeArr = selectedMetrics.map((k) => {
             let sum = 0;
             for (const d of dateKeys) {
                 sum += (outputs[d] as any)[k];
@@ -149,9 +153,9 @@ function RegionDashboard() {
         console.log(gaugeArr);
 
         return { gauges: gaugeArr, charts: chartSeries };
-    }, [dashboard.outputs]);
+    }, [dashboard.outputs, settings.selectedMetrics]);
 
-    /* Handler for the “Back” button */
+    /* Handler for the "Back" button */
     const handleBack = () => {
         dispatch(selectRegion(null));
     };
@@ -199,13 +203,17 @@ function RegionDashboard() {
                     )}
 
                     {/* No Data */}
-                    {/* {!dashboard.loading && !dashboard.error && gauges.length === 0 && (
-            <div className="flex items-center justify-center h-64">
-              <span className="text-lg text-slate-600">
-                There is no data for the chosen period.
-              </span>
-            </div>
-          )} */}
+                    {!dashboard.loading &&
+                        !dashboard.error &&
+                        gauges.length === 0 &&
+                        settings.selectedMetrics.length === 0 && (
+                            <div className="flex items-center justify-center h-64">
+                                <span className="text-lg text-slate-600">
+                                    No metrics selected. Please open settings to
+                                    select metrics to display.
+                                </span>
+                            </div>
+                        )}
 
                     {/* Error */}
                     {dashboard.error && (
