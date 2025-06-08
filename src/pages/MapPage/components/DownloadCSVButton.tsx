@@ -2,9 +2,36 @@ import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import axios from "axios";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
+import { format } from "date-fns";
 
 function DownloadCSVButton() {
     const [isLoading, setIsLoading] = useState(false);
+
+    // Get data from Redux store
+    const { regions, selectedRegionIndex } = useSelector(
+        (state: RootState) => state.regionState
+    );
+    const { startDate, endDate } = useSelector(
+        (state: RootState) => state.dateState
+    );
+
+    // Generate filename based on selected region and date range
+    const generateFilename = () => {
+        const selectedRegion =
+            selectedRegionIndex !== null ? regions[selectedRegionIndex] : null;
+        const regionName = selectedRegion?.name || "Export";
+
+        // Format dates as DD-MM-YYYY
+        const formattedStartDate = format(new Date(startDate), "dd-MM-yyyy");
+        const formattedEndDate = format(new Date(endDate), "dd-MM-yyyy");
+
+        // Clean region name (remove special characters that might cause issues in filenames)
+        const cleanRegionName = regionName.replace(/[^a-zA-Z0-9]/g, "_");
+
+        return `${cleanRegionName}_${formattedStartDate}_${formattedEndDate}.csv`;
+    };
 
     const handleDownload = async () => {
         try {
@@ -25,17 +52,8 @@ function DownloadCSVButton() {
             const link = document.createElement("a");
             link.href = url;
 
-            // Extract filename from response headers or use default
-            const contentDisposition = response.headers["content-disposition"];
-            let filename = "export.csv";
-
-            if (contentDisposition) {
-                const filenameMatch =
-                    contentDisposition.match(/filename="(.+)"/);
-                if (filenameMatch) {
-                    filename = filenameMatch[1];
-                }
-            }
+            // Use generated filename based on region and dates
+            const filename = generateFilename();
 
             link.setAttribute("download", filename);
             document.body.appendChild(link);
