@@ -8,8 +8,8 @@ export interface DateState {
 }
 
 const initialState: DateState = {
-    startDate: subDays(new Date(), 7).getTime(),
-    endDate: new Date().getTime(),
+    startDate: subDays(new Date(), 12).getTime(),
+    endDate: subDays(new Date(), 5).getTime(),
 };
 
 // Reducer

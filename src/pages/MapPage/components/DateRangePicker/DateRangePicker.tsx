@@ -16,6 +16,9 @@ import Calendar from "./Calendar";
 export function DateRangePicker() {
     const dispatch = useDispatch();
 
+    // Track which date we're currently selecting (start or end)
+    const [selectingStart, setSelectingStart] = React.useState(true);
+
     // Get dates from Redux state
     const { startDate, endDate } = useSelector(
         (state: RootState) => state.dateState
@@ -24,25 +27,42 @@ export function DateRangePicker() {
         (state: RootState) => state.regionState
     );
 
+    // Calculate the maximum allowed date (5 days before today)
+    const maxAllowedDate = React.useMemo(() => {
+        const today = new Date();
+        const fiveDaysAgo = new Date(today);
+        fiveDaysAgo.setDate(today.getDate() - 5);
+        return fiveDaysAgo;
+    }, []);
+
     // Convert Redux dates to DateRange format for the ShadCN component
     const dateRange: DateRange | undefined = React.useMemo(() => {
         if (!startDate && !endDate) return undefined;
 
         return {
-            from: new Date(startDate) || undefined,
-            to: new Date(endDate) || undefined,
+            from: startDate ? new Date(startDate) : undefined,
+            to: endDate ? new Date(endDate) : undefined,
         };
     }, [startDate, endDate]);
 
-    // Handle date changes from the calendar component
-    const handleDateRangeChange = (range: DateRange | undefined) => {
-        if (range?.from) {
-            dispatch(setStartDate(range.from.getTime()));
+    // Handle single date clicks for sequential selection
+    const handleDateClick = (date: Date) => {
+        if (selectingStart) {
+            // First click or odd clicks - set start date and default end date to same date
+            dispatch(setStartDate(date.getTime()));
+            dispatch(setEndDate(date.getTime())); // Default end date to same as start date
+            setSelectingStart(false);
+        } else {
+            // Second click or even clicks - set end date
+            dispatch(setEndDate(date.getTime()));
+            setSelectingStart(true);
         }
+    };
 
-        if (range?.to) {
-            dispatch(setEndDate(range.to.getTime()));
-        }
+    // Handle range selection - we'll intercept and use our custom logic
+    const handleRangeSelect = (range: DateRange | undefined) => {
+        // We don't use the default range selection, instead we handle clicks manually
+        // This function will be called but we'll ignore it in favor of our custom logic
     };
 
     return (
@@ -83,11 +103,24 @@ export function DateRangePicker() {
                     <Calendar
                         autoFocus
                         mode="range"
-                        defaultMonth={new Date(endDate)}
+                        defaultMonth={maxAllowedDate}
                         selected={dateRange}
-                        onSelect={handleDateRangeChange}
+                        onSelect={handleRangeSelect}
+                        onDayClick={(date) => {
+                            // Only handle clicks on enabled dates
+                            if (date <= maxAllowedDate) {
+                                handleDateClick(date);
+                            }
+                        }}
                         numberOfMonths={2}
+                        toDate={maxAllowedDate}
+                        disabled={(date) => date > maxAllowedDate}
                     />
+                    <div className="p-3 text-sm text-muted-foreground border-t">
+                        {selectingStart
+                            ? "Select start date"
+                            : "Select end date"}
+                    </div>
                 </PopoverContent>
             </Popover>
         </div>
