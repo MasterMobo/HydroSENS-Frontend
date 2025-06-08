@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
 import { useDispatch } from "react-redux";
-import { setCurrentCoordinates } from "@/redux/regionDrawingActions";
+import { setCurrentCoordinates, setRegionName } from "@/redux/regionDrawingActions";
 
 // @ts-ignore - shpjs doesn't have perfect TypeScript definitions
 import shp from "shpjs";
@@ -150,6 +150,22 @@ function ShapefileUploadModal({
                     );
                 }
 
+                if (geojson.features.length > 1) {
+                    throw new Error(
+                      "Detected multiple polygons in the shapefile. Please upload a single-region file."
+                    );
+                }
+          
+                const feature = geojson.features[0];
+                if (
+                    feature.geometry.type === "MultiPolygon" &&
+                    feature.geometry.coordinates.length > 1
+                ) {
+                    throw new Error(
+                      "Detected multiple polygons inside a MultiPolygon geometry. Please provide a single polygon."
+                    );
+                }
+
                 const coordinates = convertGeometryToCoordinates(
                     firstFeature.geometry
                 );
@@ -171,8 +187,37 @@ function ShapefileUploadModal({
                     );
                 }
 
-                // Dispatch the coordinates to Redux
+                // First set the coordinates
                 dispatch(setCurrentCoordinates(coordinates));
+
+                // Then extract and set region name with better fallback logic
+                const props = feature.properties ?? {};
+                console.log("Shapefile properties:", props); // Debug log
+                
+                let regionName = "";
+                
+                // Try multiple common name fields (case insensitive)
+                const nameFields = ["name", "NAME", "Name", "region", "REGION", "Region", 
+                                  "area_name", "AREA_NAME", "label", "LABEL", "title", "TITLE"];
+                
+                for (const field of nameFields) {
+                    if (props[field] && typeof props[field] === 'string' && props[field].trim()) {
+                        regionName = String(props[field]).trim();
+                        break;
+                    }
+                }
+                
+                // If no name found in properties, try to use filename as fallback
+                if (!regionName) {
+                    // Remove file extension and use as region name
+                    regionName = file.name.replace(/\.(zip|shp)$/i, '').replace(/[_-]/g, ' ');
+                }
+                
+                console.log("Setting region name to:", regionName); // Debug log
+                
+                if (regionName) {
+                    dispatch(setRegionName(regionName));
+                }
 
                 // Notify parent that shapefile was loaded
                 onShapefileLoaded();
