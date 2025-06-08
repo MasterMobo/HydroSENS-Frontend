@@ -24,6 +24,14 @@ export function DateRangePicker() {
         (state: RootState) => state.regionState
     );
 
+    // Calculate the maximum allowed date (5 days before today)
+    const maxAllowedDate = React.useMemo(() => {
+        const today = new Date();
+        const fiveDaysAgo = new Date(today);
+        fiveDaysAgo.setDate(today.getDate() - 5);
+        return fiveDaysAgo;
+    }, []);
+
     // Convert Redux dates to DateRange format for the ShadCN component
     const dateRange: DateRange | undefined = React.useMemo(() => {
         if (!startDate && !endDate) return undefined;
@@ -83,10 +91,12 @@ export function DateRangePicker() {
                     <Calendar
                         autoFocus
                         mode="range"
-                        defaultMonth={new Date(endDate)}
+                        defaultMonth={maxAllowedDate}
                         selected={dateRange}
                         onSelect={handleDateRangeChange}
                         numberOfMonths={2}
+                        toDate={maxAllowedDate}
+                        disabled={(date) => date > maxAllowedDate}
                     />
                 </PopoverContent>
             </Popover>
