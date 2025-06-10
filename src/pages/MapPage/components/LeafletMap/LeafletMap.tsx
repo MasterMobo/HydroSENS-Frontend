@@ -9,7 +9,7 @@ import CustomDrawingControl from "../RegionDrawing/CustomDrawingControl";
 import AddRegionModal from "../RegionDrawing/AddRegionModal";
 import LeafletMapController from "./LeafletMapController";
 import { useDrawingControl } from "../RegionDrawing/useDrawingControl";
-import SimpleTifLayer from "../LayerView/SimpleTifLayer";
+import FixedTifLayer from "./FixedTifLayer";
 
 function LeafletMap() {
     const dispatch = useDispatch();
@@ -56,7 +56,8 @@ function LeafletMap() {
                     }
                 />
 
-                {selectedRegionIndex !== null && <SimpleTifLayer />}
+                {/* TIF layer overlay - only when region is selected */}
+                {selectedRegionIndex !== null && <FixedTifLayer />}
 
                 <LeafletMapController
                     selectedRegionIndex={selectedRegionIndex}
