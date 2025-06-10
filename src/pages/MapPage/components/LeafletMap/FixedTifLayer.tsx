@@ -163,16 +163,16 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
 
             // FIT THE MAP TO THE GEORASTER BOUNDS
             // This is crucial - the data might be in a completely different location
-            const leafletBounds = [
-                [georaster.ymin, georaster.xmin], // southwest
-                [georaster.ymax, georaster.xmax], // northeast
-            ];
+            // const leafletBounds = [
+            //     [georaster.ymin, georaster.xmin], // southwest
+            //     [georaster.ymax, georaster.xmax], // northeast
+            // ];
 
-            console.log("Fitting map to georaster bounds:", leafletBounds);
-            map.fitBounds(leafletBounds, {
-                padding: [20, 20],
-                maxZoom: 15, // Don't zoom in too much
-            });
+            // console.log("Fitting map to georaster bounds:", leafletBounds);
+            // map.fitBounds(leafletBounds, {
+            //     padding: [20, 20],
+            //     maxZoom: 15, // Don't zoom in too much
+            // });
 
             // Log success
             geoRasterLayer.on("load", () => {
