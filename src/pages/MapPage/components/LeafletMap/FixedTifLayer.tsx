@@ -8,11 +8,19 @@ interface FixedTifLayerProps {
     opacity?: number;
 }
 
-const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 1 }) => {
+const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
     const map = useMap();
     const layerRef = useRef<any>(null);
     const layerState = useSelector((state: RootState) => state.layers);
     const regionState = useSelector((state: RootState) => state.regionState);
+
+    useEffect(() => {
+        // Create a custom pane for TIF layers with higher z-index
+        if (!map.getPane("tifLayer")) {
+            const tifPane = map.createPane("tifLayer");
+            tifPane.style.zIndex = "650"; // Higher than overlay pane (600) but lower than popup (700)
+        }
+    }, [map]);
 
     useEffect(() => {
         let isMounted = true;
@@ -27,11 +35,12 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 1 }) => {
             layerRef.current = null;
         }
 
-        // Only proceed if we have all required data
+        // Only proceed if we have all required data and not selecting "none"
         if (
             regionState.selectedRegionIndex === null ||
             !layerState.selectedDate ||
             !layerState.selectedLayer ||
+            layerState.selectedLayer === "none" ||
             layerState.dateLayers.length === 0
         ) {
             return;
@@ -126,10 +135,11 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 1 }) => {
                 east: mapBounds.getEast(),
             });
 
-            // Create layer
+            // Create layer with custom pane to ensure it renders above polygons
             const geoRasterLayer = new GeoRasterLayer({
                 georaster: georaster,
                 opacity: opacity,
+                pane: "tifLayer", // Use custom pane with higher z-index
                 pixelValuesToColorFn: (pixelValues: number[]) => {
                     const pixelValue = pixelValues[0];
 
