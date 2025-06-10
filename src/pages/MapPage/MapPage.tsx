@@ -14,7 +14,6 @@ import type { RootState } from "../../redux/store";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ViewMode } from "@/types/viewMode";
-import DebugTifInfo from "./components/DebugTifInfo";
 
 function MapPage() {
     const { selectedRegionIndex } = useSelector(
@@ -68,9 +67,6 @@ function MapPage() {
 
             {/* Settings Modal */}
             <SettingsModal />
-
-            {/* Debug Info - Remove this in production */}
-            <DebugTifInfo />
         </div>
     );
 }
