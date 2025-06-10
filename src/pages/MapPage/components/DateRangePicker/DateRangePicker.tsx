@@ -66,15 +66,7 @@ export function DateRangePicker() {
     };
 
     return (
-        <div
-            className={"absolute bottom-0 mb-3"}
-            style={{
-                left:
-                    selectedRegionIndex === null
-                        ? "calc(50% - 150px)"
-                        : "calc(25% - 150px)",
-            }}
-        >
+        <div className={"flex justify-center items-center w-full"}>
             <Popover>
                 <PopoverTrigger asChild>
                     <Button

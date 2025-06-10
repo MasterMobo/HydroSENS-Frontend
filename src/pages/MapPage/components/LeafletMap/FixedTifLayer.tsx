@@ -8,7 +8,7 @@ interface FixedTifLayerProps {
     opacity?: number;
 }
 
-const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
+const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 1 }) => {
     const map = useMap();
     const layerRef = useRef<any>(null);
     const layerState = useSelector((state: RootState) => state.layers);
@@ -160,19 +160,6 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
             console.log("Adding georaster layer to map...");
             geoRasterLayer.addTo(map);
             layerRef.current = geoRasterLayer;
-
-            // FIT THE MAP TO THE GEORASTER BOUNDS
-            // This is crucial - the data might be in a completely different location
-            // const leafletBounds = [
-            //     [georaster.ymin, georaster.xmin], // southwest
-            //     [georaster.ymax, georaster.xmax], // northeast
-            // ];
-
-            // console.log("Fitting map to georaster bounds:", leafletBounds);
-            // map.fitBounds(leafletBounds, {
-            //     padding: [20, 20],
-            //     maxZoom: 15, // Don't zoom in too much
-            // });
 
             // Log success
             geoRasterLayer.on("load", () => {

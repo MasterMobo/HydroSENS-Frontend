@@ -34,7 +34,12 @@ function MapPage() {
 
             {/* date-range picker — anchored at bottom-center of the map */}
             {viewMode === ViewMode.MAIN_VIEW && (
-                <div className="absolute bottom-4 inset-x-0 flex flex-col justify-center pointer-events-none">
+                <div
+                    className="absolute bottom-4 flex flex-row justify-center items-end gap-10 pointer-events-none"
+                    style={{
+                        width: selectedRegionIndex !== null ? "50vw" : "100vw",
+                    }}
+                >
                     {/* pointer-events auto so picker is clickable but wrapper isn't */}
                     <div className="relative pointer-events-auto">
                         <DateRangePicker />
@@ -42,7 +47,7 @@ function MapPage() {
 
                     {/* Layer View - Only show when region is selected */}
                     {selectedRegionIndex !== null && (
-                        <div className="relative mt-4 flex justify-center pointer-events-auto z-200">
+                        <div className="relative mt-4 flex justify-center pointer-events-auto self-end">
                             <LayerView />
                         </div>
                     )}

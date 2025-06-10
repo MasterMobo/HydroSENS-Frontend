@@ -33,14 +33,10 @@ export const layerReducer = (state = initialState, action: any): LayerState => {
                 ...state,
                 loading: false,
                 dateLayers: action.payload,
-                // Auto-select first date and layer if available
+                // Auto-select first date and default to "No Layer"
                 selectedDate:
                     action.payload.length > 0 ? action.payload[0].date : null,
-                selectedLayer:
-                    action.payload.length > 0 &&
-                    action.payload[0].layers.length > 0
-                        ? action.payload[0].layers[0].name
-                        : null,
+                selectedLayer: "none", // Default to "No Layer" instead of first actual layer
             };
         case FETCH_LAYERS_FAILURE:
             return { ...state, loading: false, error: action.payload };
