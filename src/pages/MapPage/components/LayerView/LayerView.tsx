@@ -53,7 +53,7 @@ const LayerView: React.FC = () => {
     // Show loading if either dashboard is loading or layers are loading
     if (loading || dashboardState.loading) {
         return (
-            <Card className="w-40 mr-4 bg-white/95 backdrop-blur-sm shadow-lg py-4">
+            <Card className="w-40 mr-6 bg-white/95 backdrop-blur-sm shadow-lg py-4">
                 <CardContent className="px-4 py-0">
                     <div className="flex items-center space-x-2">
                         <Layers className="w-4 h-4 animate-spin" />
@@ -66,7 +66,7 @@ const LayerView: React.FC = () => {
 
     if (error) {
         return (
-            <Card className="w-40 mr-4 bg-white/95 backdrop-blur-sm shadow-lg py-4">
+            <Card className="w-40 mr-6 bg-white/95 backdrop-blur-sm shadow-lg py-4">
                 <CardContent className="px-4 py-0">
                     <div className="text-sm text-red-600">
                         Error loading layers: {error}
@@ -83,7 +83,7 @@ const LayerView: React.FC = () => {
         !dashboardState.error
     ) {
         return (
-            <Card className="w-40 mr-4 bg-white/95 backdrop-blur-sm shadow-lg py-4">
+            <Card className="w-40 mr-6 bg-white/95 backdrop-blur-sm shadow-lg py-4">
                 <CardContent className="px-4 py-0">
                     <div className="text-sm text-gray-600">
                         No layer data available
@@ -94,7 +94,7 @@ const LayerView: React.FC = () => {
     }
 
     return (
-        <Card className="w-40 mr-4 bg-white/95 backdrop-blur-sm shadow-lg py-4">
+        <Card className="w-40 mr-6 bg-white/95 backdrop-blur-sm shadow-lg py-4">
             <CardContent className="px-4 py-0">
                 <Accordion type="single" collapsible>
                     <AccordionItem value="layers" className="border-none">
