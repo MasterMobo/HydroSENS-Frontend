@@ -6,6 +6,7 @@ import { viewModeReducer } from "./viewModeReducers";
 import { regionDrawingReducer } from "./regionDrawingReducer";
 import { dashboardReducer } from "./dashboardReducer";
 import { settingsReducer } from "./settingsReducer";
+import { layerReducer } from "./layerReducer";
 import { settingsMiddleware } from "./middlewares/settingsMiddleware";
 
 // Combine all reducers
@@ -16,6 +17,7 @@ const rootReducer = combineReducers({
     regionDrawingState: regionDrawingReducer,
     dashboard: dashboardReducer,
     settings: settingsReducer,
+    layers: layerReducer,
 });
 
 // Create the store with settings middleware

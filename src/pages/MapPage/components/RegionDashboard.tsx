@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { selectRegion } from "@/redux/regionActions";
 import { fetchHydrosens } from "@/redux/dashboardActions";
+import { fetchLayers, clearLayers } from "@/redux/layerActions";
 import { HydrosensOutputs } from "@/types/hydrosens";
 import DownloadCSVButton from "./DownloadCSVButton";
 import { MetricKey } from "@/redux/settingsActions";
@@ -89,6 +90,24 @@ function RegionDashboard() {
         dateState.startDate,
         dateState.endDate,
     ]);
+
+    /* Fetch layers after dashboard data is loaded successfully */
+    useEffect(() => {
+        if (
+            !dashboard.loading &&
+            !dashboard.error &&
+            Object.keys(dashboard.outputs).length > 0
+        ) {
+            dispatch(fetchLayers());
+        }
+    }, [dispatch, dashboard.loading, dashboard.error, dashboard.outputs]);
+
+    /* Clear layers when region is deselected */
+    useEffect(() => {
+        if (regionState.selectedRegionIndex === null) {
+            dispatch(clearLayers());
+        }
+    }, [dispatch, regionState.selectedRegionIndex]);
 
     /* Transform API outputs → gauges + chart series, filtered by selected metrics */
     const { gauges, charts } = useMemo(() => {
