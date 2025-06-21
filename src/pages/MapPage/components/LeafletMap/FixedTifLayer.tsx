@@ -1,50 +1,14 @@
 // components/LeafletMap/FixedTifLayer.tsx
 import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/redux/store";
+import { setLayerDataRange } from "@/redux/layerActions";
+import { COLOR_PALETTES } from "@/constants";
 
 interface FixedTifLayerProps {
     opacity?: number;
 }
-
-// Define color palettes for each layer type as arrays of RGB colors
-const COLOR_PALETTES = {
-    vegetation: [
-        [255, 255, 255], // White
-        [0, 100, 0], // Dark green
-    ],
-    impervious: [
-        [255, 255, 255], // White
-        [64, 64, 64], // Dark gray
-    ],
-    CCN_final: [
-        [0, 0, 255], // Blue
-        [0, 255, 255], // Cyan
-        [0, 255, 0], // Green
-        [255, 255, 0], // Yellow
-        [255, 0, 0], // Red
-    ],
-    Runoff: [
-        [255, 255, 255], // White
-        [0, 0, 139], // Dark blue
-    ],
-    NDVI: [
-        [100, 0, 0],
-        [255, 0, 0],
-        [255, 255, 0],
-        [0, 200, 0],
-        [0, 100, 0],
-    ],
-    Vegetation_Health: [
-        [255, 255, 0], // Yellow
-        [0, 128, 0], // Green
-    ],
-    soil: [
-        [255, 255, 255], // White
-        [101, 67, 33], // Dark brown
-    ],
-};
 
 // Helper function to interpolate between multiple colors in a palette
 const interpolateColorArray = (
@@ -121,6 +85,7 @@ const getLayerColor = (
 
 const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
     const map = useMap();
+    const dispatch = useDispatch<AppDispatch>();
     const layerRef = useRef<any>(null);
     const layerState = useSelector((state: RootState) => state.layers);
     const regionState = useSelector((state: RootState) => state.regionState);
@@ -189,6 +154,7 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
         layerState.dateLayers,
         regionState.selectedRegionIndex,
         opacity,
+        dispatch,
     ]);
 
     const loadTifLayer = async (layerFile: any, isMounted: boolean) => {
@@ -229,6 +195,15 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
                 mins: georaster.mins,
                 maxs: georaster.maxs,
             });
+
+            // Store the data range in Redux for the legend
+            const layerKey = `${layerState.selectedDate}_${layerState.selectedLayer}`;
+            dispatch(
+                setLayerDataRange(layerKey, {
+                    min: georaster.mins[0],
+                    max: georaster.maxs[0],
+                })
+            );
 
             // Check if the georaster bounds are within reasonable distance of current map view
             const georasterBounds = {
@@ -295,7 +270,7 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
             // Log success
             geoRasterLayer.on("load", () => {
                 console.log(
-                    `✅ TIF layer ${layerFile.name} loaded and displayed successfully with custom color palette`
+                    `✅ TIF layer ${layerFile.name} loaded and displayed successfully with custom color palette and data range stored`
                 );
             });
 
