@@ -29,7 +29,7 @@ export const fetchHydrosens =
         try {
             dispatch(fetchHydrosensRequest());
 
-            const { regionState, dateState } = getState();
+            const { regionState, dateState, settings } = getState();
             const selectedIndex = regionState.selectedRegionIndex;
             const region = regionState.regions[selectedIndex!];
 
@@ -46,6 +46,9 @@ export const fetchHydrosens =
                 lon,
                 lat,
             ]);
+
+            // Build statistics string from selected metrics in settings
+            const statisticsString = settings.selectedMetrics.join(", ");
 
             const payload = {
                 amc: 2,

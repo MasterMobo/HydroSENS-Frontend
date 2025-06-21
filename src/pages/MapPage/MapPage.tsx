@@ -1,17 +1,19 @@
-import React from "react";
+"use client";
 import "leaflet/dist/leaflet.css";
 
 import LeafletMap from "./components/LeafletMap/LeafletMap";
 import RegionList from "./components/RegionList/RegionList";
 import DateRangePicker from "./components/DateRangePicker/DateRangePicker";
 import RegionDashboard from "./components/RegionDashboard";
+import LayerView from "./components/LayerView/LayerView";
+import SettingsButton from "./components/SettingsButton/SettingsButton";
+import SettingsModal from "./components/SettingsModal/SettingsModal";
 
 import { useSelector } from "react-redux";
-import { RootState } from "../../redux/store";
+import type { RootState } from "../../redux/store";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ViewMode } from "@/types/viewMode";
-import AddRegionModal from "./components/RegionDrawing/AddRegionModal";
 
 function MapPage() {
     const { selectedRegionIndex } = useSelector(
@@ -24,16 +26,33 @@ function MapPage() {
             {/* base map */}
             <LeafletMap />
 
+            {/* Settings Button */}
+            <SettingsButton />
+
             {/* region list (left sidebar) */}
             {viewMode === ViewMode.MAIN_VIEW && <RegionList />}
 
             {/* date-range picker — anchored at bottom-center of the map */}
             {viewMode === ViewMode.MAIN_VIEW && (
-                <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
-                    {/* pointer-events auto so picker is clickable but wrapper isn’t */}
-                    <div className="pointer-events-auto">
+                <div
+                    className="absolute bottom-4 flex flex-row justify-end items-end gap-10 pointer-events-none"
+                    style={{
+                        width: selectedRegionIndex !== null ? "50vw" : "100vw",
+                        justifyContent:
+                            selectedRegionIndex !== null ? "end" : "center",
+                    }}
+                >
+                    {/* pointer-events auto so picker is clickable but wrapper isn't */}
+                    <div className="relative pointer-events-auto">
                         <DateRangePicker />
                     </div>
+
+                    {/* Layer View - Only show when region is selected */}
+                    {selectedRegionIndex !== null && (
+                        <div className="relative flex justify-center pointer-events-auto self-end">
+                            <LayerView />
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -52,6 +71,9 @@ function MapPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Settings Modal */}
+            <SettingsModal />
         </div>
     );
 }
