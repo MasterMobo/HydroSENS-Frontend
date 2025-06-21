@@ -11,6 +11,17 @@ export interface DateLayers {
     layers: LayerFile[];
 }
 
+// Define allowed TIF file names (without .tif extension)
+const ALLOWED_LAYER_NAMES = [
+    "vegetation",
+    "impervious",
+    "CCN_final",
+    "Runoff",
+    "NVDI",
+    "Vegetation_Health",
+    "soil",
+];
+
 export async function fetchLayerTifs(): Promise<DateLayers[]> {
     try {
         const response = await api.get("/analyze/export-tifs", {
@@ -36,6 +47,15 @@ export async function fetchLayerTifs(): Promise<DateLayers[]> {
             const [date, filename] = pathParts;
             if (!filename.endsWith(".tif")) continue;
 
+            // Extract the base name without .tif extension
+            const baseName = filename.replace(".tif", "");
+
+            // Filter: only process files with allowed names
+            if (!ALLOWED_LAYER_NAMES.includes(baseName)) {
+                console.log(`Skipping filtered out layer: ${filename}`);
+                continue;
+            }
+
             // Get the file blob
             const blob = await file.async("blob");
             const url = URL.createObjectURL(blob);
@@ -58,6 +78,10 @@ export async function fetchLayerTifs(): Promise<DateLayers[]> {
         }
 
         dateLayers.sort((a, b) => a.date.localeCompare(b.date));
+
+        console.log(
+            `Processed ${dateLayers.length} date groups with filtered layers`
+        );
 
         return dateLayers;
     } catch (error) {
