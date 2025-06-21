@@ -17,7 +17,7 @@ const ALLOWED_LAYER_NAMES = [
     "impervious",
     "CCN_final",
     "Runoff",
-    "NVDI",
+    "NDVI",
     "Vegetation_Health",
     "soil",
 ];
