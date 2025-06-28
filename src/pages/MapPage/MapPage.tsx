@@ -11,6 +11,7 @@ import SettingsModal from "./components/SettingsModal/SettingsModal";
 
 import { useSelector } from "react-redux";
 import type { RootState } from "../../redux/store";
+import { useState } from "react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ViewMode } from "@/types/viewMode";
@@ -21,13 +22,16 @@ function MapPage() {
     );
     const { viewMode } = useSelector((state: RootState) => state.viewModeState);
 
+    // State to track PDF overlay visibility
+    const [isPdfOverlayOpen, setIsPdfOverlayOpen] = useState(false);
+
     return (
         <div className="relative h-screen w-full overflow-hidden">
             {/* base map */}
             <LeafletMap />
 
-            {/* Settings Button */}
-            <SettingsButton />
+            {/* Settings Button - Hide when PDF overlay is open */}
+            {!isPdfOverlayOpen && <SettingsButton />}
 
             {/* region list (left sidebar) */}
             {viewMode === ViewMode.MAIN_VIEW && <RegionList />}
@@ -67,7 +71,7 @@ function MapPage() {
                         transition={{ type: "tween", duration: 0.35 }}
                         className="absolute inset-y-0 right-0 w-[50vw]"
                     >
-                        <RegionDashboard />
+                        <RegionDashboard onPdfOverlayToggle={setIsPdfOverlayOpen} />
                     </motion.div>
                 )}
             </AnimatePresence>
