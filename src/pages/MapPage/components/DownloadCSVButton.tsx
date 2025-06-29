@@ -34,11 +34,23 @@ function DownloadCSVButton() {
     };
 
     const handleDownload = async () => {
+        const formatLocal = (d: Date) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        };
+
         try {
             setIsLoading(true);
 
-            const response = await axios.get(
+            const response = await axios.post(
                 "http://localhost:5050/analyze/export-csv",
+                {
+                    region_name: regions[selectedRegionIndex || 0].name,
+                    start_date: formatLocal(new Date(startDate)),
+                    end_date: formatLocal(new Date(endDate)),
+                },
                 {
                     responseType: "blob", // Important for file downloads
                     headers: {
