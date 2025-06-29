@@ -271,10 +271,13 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
   /* Handler for closing PDF viewer */
   const handleClosePdfViewer = () => {
     setIsPdfViewerOpen(false);
-    if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
-      setPdfUrl(null);
-    }
+    // Delay clearing the pdfUrl to allow exit animation to complete
+    setTimeout(() => {
+      if (pdfUrl) {
+        URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(null);
+      }
+    }, 300); // Match the animation duration
   };
 
   const hasData = gauges.length > 0 && !dashboard.loading && !dashboard.error;
