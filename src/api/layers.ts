@@ -22,10 +22,13 @@ const ALLOWED_LAYER_NAMES = [
     "soil",
 ];
 
-export async function fetchLayerTifs(): Promise<DateLayers[]> {
+export async function fetchLayerTifs(payload: any): Promise<DateLayers[]> {
     try {
-        const response = await api.get("/analyze/export-tifs", {
+        const response = await api.post("/analyze/export-tifs", payload, {
             responseType: "blob",
+            headers: {
+                "Content-Type": "application/json",
+            },
         });
 
         // We'll need a library to extract ZIP files in the browser

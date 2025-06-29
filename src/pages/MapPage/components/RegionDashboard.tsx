@@ -13,6 +13,7 @@ import { fetchLayers, clearLayers } from "@/redux/layerActions";
 import { HydrosensOutputs } from "@/types/hydrosens";
 import DownloadCSVButton from "./DownloadCSVButton";
 import { MetricKey } from "@/redux/settingsActions";
+import { formatDate } from "date-fns";
 
 /* ------------------------------------------------------------------ */
 /*  Colour / unit meta per metric key                                 */
@@ -98,7 +99,20 @@ function RegionDashboard() {
             !dashboard.error &&
             Object.keys(dashboard.outputs).length > 0
         ) {
-            dispatch(fetchLayers());
+            const formatLocal = (d: Date) => {
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, "0");
+                const day = String(d.getDate()).padStart(2, "0");
+                return `${year}-${month}-${day}`;
+            };
+            const { regions, selectedRegionIndex } = regionState;
+            dispatch(
+                fetchLayers({
+                    region_name: regions[selectedRegionIndex || 0].name,
+                    start_date: formatLocal(new Date(dateState.startDate)),
+                    end_date: formatLocal(new Date(dateState.endDate)),
+                })
+            );
         }
     }, [dispatch, dashboard.loading, dashboard.error, dashboard.outputs]);
 

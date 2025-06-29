@@ -51,6 +51,7 @@ export const fetchHydrosens =
             const statisticsString = settings.selectedMetrics.join(", ");
 
             const payload = {
+                region_name: region.name,
                 amc: 2,
                 precipitation: 100.0,
                 crs: "EPSG:4326",

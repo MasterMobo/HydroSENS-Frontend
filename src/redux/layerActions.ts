@@ -13,7 +13,9 @@ export const CLEAR_LAYERS = "CLEAR_LAYERS";
 export const SET_LAYER_DATA_RANGE = "SET_LAYER_DATA_RANGE";
 
 /* Action creators */
-export const fetchLayersRequest = () => ({ type: FETCH_LAYERS_REQUEST });
+export const fetchLayersRequest = () => ({
+    type: FETCH_LAYERS_REQUEST,
+});
 export const fetchLayersSuccess = (data: DateLayers[]) => ({
     type: FETCH_LAYERS_SUCCESS,
     payload: data,
@@ -41,11 +43,12 @@ export const setLayerDataRange = (
 
 /* Thunk that calls the API */
 export const fetchLayers =
-    (): ThunkAction<void, RootState, unknown, AnyAction> =>
+    (payload: any): ThunkAction<void, RootState, unknown, AnyAction> =>
     async (dispatch) => {
         try {
             dispatch(fetchLayersRequest());
-            const layers = await fetchLayerTifs();
+            // TODO: add region_name, start_date, end_date
+            const layers = await fetchLayerTifs(payload);
             dispatch(fetchLayersSuccess(layers));
         } catch (err: any) {
             dispatch(
