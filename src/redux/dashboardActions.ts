@@ -14,58 +14,65 @@ export const FETCH_HYDROSENS_FAILURE = "FETCH_HYDROSENS_FAILURE";
 /* Action creators */
 export const fetchHydrosensRequest = () => ({ type: FETCH_HYDROSENS_REQUEST });
 export const fetchHydrosensSuccess = (data: HydrosensOutputs) => ({
-    type: FETCH_HYDROSENS_SUCCESS,
-    payload: data,
+  type: FETCH_HYDROSENS_SUCCESS,
+  payload: data,
 });
 export const fetchHydrosensFailure = (msg: string) => ({
-    type: FETCH_HYDROSENS_FAILURE,
-    payload: msg,
+  type: FETCH_HYDROSENS_FAILURE,
+  payload: msg,
 });
 
 /* Thunk that calls the API */
 export const fetchHydrosens =
-    (): ThunkAction<void, RootState, unknown, AnyAction> =>
-    async (dispatch, getState) => {
-        try {
-            dispatch(fetchHydrosensRequest());
+  (): ThunkAction<void, RootState, unknown, AnyAction> =>
+  async (dispatch, getState) => {
+    try {
+      dispatch(fetchHydrosensRequest());
 
-            const { regionState, dateState, settings } = getState();
-            const selectedIndex = regionState.selectedRegionIndex;
-            const region = regionState.regions[selectedIndex!];
+      const { regionState, dateState, settings } = getState();
+      const selectedIndex = regionState.selectedRegionIndex;
+      const region = regionState.regions[selectedIndex!];
 
-            // Format date as yyyy-mm-dd
-            const formatLocal = (d: Date) => {
-                const year = d.getFullYear();
-                const month = String(d.getMonth() + 1).padStart(2, "0");
-                const day = String(d.getDate()).padStart(2, "0");
-                return `${year}-${month}-${day}`;
-            };
+      // Check if any metrics are selected
+      if (!settings.selectedMetrics || settings.selectedMetrics.length === 0) {
+        throw new Error(
+          "No metrics selected. Please select metrics in settings."
+        );
+      }
 
-            // Convert coordinates to [lon, lat]
-            const coordinates = region.coordinates.map(([lat, lon]) => [
-                lon,
-                lat,
-            ]);
+      // Format date as yyyy-mm-dd
+      const formatLocal = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
 
-            // Build statistics string from selected metrics in settings
-            const statisticsString = settings.selectedMetrics.join(", ");
+      // Convert coordinates to [lon, lat]
+      const coordinates = region.coordinates.map(([lat, lon]) => [lon, lat]);
 
-            const payload = {
-                amc: 2,
-                precipitation: 100.0,
-                crs: "EPSG:4326",
-                start_date: formatLocal(new Date(dateState.startDate)),
-                end_date: formatLocal(new Date(dateState.endDate)),
-                coordinates: coordinates,
-                num_coordinates: coordinates.length,
-                statistics:
-                    "curve-number, ndvi, precipitation, soil-fraction, temperature, vegetation-fraction",
-            };
-            console.log(payload);
+      // Build statistics string from selected metrics in settings
+      // const statisticsString = settings.selectedMetrics.join(", ");
+      const fullStatisticsString =
+        "curve-number, ndvi, precipitation, soil-fraction, temperature, vegetation-fraction";
 
-            const res = await postHydrosens(payload);
-            dispatch(fetchHydrosensSuccess(res));
-        } catch (err: any) {
-            dispatch(fetchHydrosensFailure(err.message || "Unknown error"));
-        }
-    };
+      const payload = {
+        amc: 2,
+        precipitation: 100.0,
+        crs: "EPSG:4326",
+        start_date: formatLocal(new Date(dateState.startDate)),
+        end_date: formatLocal(new Date(dateState.endDate)),
+        coordinates: coordinates,
+        num_coordinates: coordinates.length,
+        statistics: fullStatisticsString,
+      };
+
+      console.log("Payload with dynamic statistics:", payload);
+      console.log("Selected metrics:", settings.selectedMetrics);
+
+      const res = await postHydrosens(payload);
+      dispatch(fetchHydrosensSuccess(res));
+    } catch (err: any) {
+      dispatch(fetchHydrosensFailure(err.message || "Unknown error"));
+    }
+  };
