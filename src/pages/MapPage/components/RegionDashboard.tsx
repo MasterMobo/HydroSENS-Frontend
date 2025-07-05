@@ -249,7 +249,7 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
       const coordinates = region.coordinates.map(([lat, lon]) => [lon, lat]);
 
       const payload: GenerateReportPayload = {
-        regionName: region.name || "Unknown Region",
+        region_name: region.name || "Unknown Region",
         start_date: formatLocal(new Date(dateState.startDate)),
         end_date: formatLocal(new Date(dateState.endDate)),
         coordinates: coordinates,
