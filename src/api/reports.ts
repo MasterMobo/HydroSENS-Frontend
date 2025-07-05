@@ -1,7 +1,7 @@
 import { api } from "./client";
 
 export interface GenerateReportPayload {
-  regionName: string;
+  region_name: string;
   start_date: string;
   end_date: string;
   coordinates: number[][];
