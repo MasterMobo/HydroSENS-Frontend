@@ -337,12 +337,12 @@ function AddRegionModal({
                         )}
 
                         <label className="block text-sm font-medium mb-2 mt-5">
-                            Region Name
+                            Area Name
                         </label>
                         <Input
                             value={regionName}
                             onChange={handleRegionNameChange}
-                            placeholder="Enter region name..."
+                            placeholder="Enter area name..."
                             className="w-full"
                             disabled={isEditMode}
                         />
@@ -359,7 +359,7 @@ function AddRegionModal({
                             }
                             className="flex-1"
                         >
-                            Save Region
+                            Save Area
                         </Button>
                         <Button
                             variant="outline"
