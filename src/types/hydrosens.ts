@@ -3,12 +3,12 @@
  * (Add/remove properties if the backend changes.)
  */
 export interface HydrosensMetrics {
-  "curve-number":        number;
-  ndvi:                  number;
-  precipitation:         number;
-  "soil-fraction":       number;
-  temperature:           number;
-  "vegetation-fraction": number;
+    "curve-number": number;
+    ndvi: number;
+    precipitation: number;
+    "soil-fraction": number;
+    temperature: number;
+    "vegetation-fraction": number;
 }
 
 /**
@@ -17,15 +17,15 @@ export interface HydrosensMetrics {
 export type HydrosensOutputs = Record<string, HydrosensMetrics>;
 
 export interface HydrosensResponse {
-  message: string;
-  parameters: {
-    amc: number;
-    coordinates: [number, number][];
-    crs: string;
-    end_date: string;
-    num_coordinates: number;
-    precipitation: number;
-    start_date: string;
-  };
-  results: HydrosensOutputs;
+    message: string;
+    parameters: {
+        amc: number;
+        coordinates: [number, number][];
+        crs: string;
+        end_date: string;
+        num_coordinates: number;
+        precipitation: number;
+        start_date: string;
+    };
+    outputs: HydrosensOutputs;
 }

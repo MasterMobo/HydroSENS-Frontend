@@ -1,15 +1,91 @@
 // components/LeafletMap/FixedTifLayer.tsx
 import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/redux/store";
+import { setLayerDataRange } from "@/redux/layerActions";
+import { COLOR_PALETTES } from "@/constants";
 
 interface FixedTifLayerProps {
     opacity?: number;
 }
 
+// Helper function to interpolate between multiple colors in a palette
+const interpolateColorArray = (
+    colors: number[][],
+    factor: number
+): number[] => {
+    // Clamp factor between 0 and 1
+    factor = Math.max(0, Math.min(1, factor));
+
+    // If only one color, return it
+    if (colors.length === 1) {
+        return [...colors[0]];
+    }
+
+    // If factor is 0, return first color
+    if (factor === 0) {
+        return [...colors[0]];
+    }
+
+    // If factor is 1, return last color
+    if (factor === 1) {
+        return [...colors[colors.length - 1]];
+    }
+
+    // Calculate which segment of the gradient we're in
+    const segmentCount = colors.length - 1;
+    const segmentSize = 1 / segmentCount;
+    const segmentIndex = Math.floor(factor / segmentSize);
+    const segmentFactor = (factor - segmentIndex * segmentSize) / segmentSize;
+
+    // Handle edge case where we're exactly at the end
+    const startIndex = Math.min(segmentIndex, segmentCount - 1);
+    const endIndex = Math.min(startIndex + 1, colors.length - 1);
+
+    // Interpolate between the two colors in this segment
+    const startColor = colors[startIndex];
+    const endColor = colors[endIndex];
+
+    return [
+        Math.round(
+            startColor[0] + (endColor[0] - startColor[0]) * segmentFactor
+        ),
+        Math.round(
+            startColor[1] + (endColor[1] - startColor[1]) * segmentFactor
+        ),
+        Math.round(
+            startColor[2] + (endColor[2] - startColor[2]) * segmentFactor
+        ),
+    ];
+};
+
+// Function to get color for a specific layer and normalized value
+const getLayerColor = (
+    layerName: string,
+    normalizedValue: number,
+    opacity: number
+): string => {
+    // Extract base name without .tif extension
+    const baseName = layerName.replace(".tif", "");
+
+    // Get color palette for this layer
+    const palette = COLOR_PALETTES[baseName as keyof typeof COLOR_PALETTES];
+
+    if (!palette) {
+        // Fallback to grayscale if layer not found
+        const intensity = Math.floor(normalizedValue * 255);
+        return `rgba(${intensity}, ${intensity}, ${intensity}, ${opacity})`;
+    }
+
+    // Interpolate through the color array
+    const [r, g, b] = interpolateColorArray(palette, normalizedValue);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
 const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
     const map = useMap();
+    const dispatch = useDispatch<AppDispatch>();
     const layerRef = useRef<any>(null);
     const layerState = useSelector((state: RootState) => state.layers);
     const regionState = useSelector((state: RootState) => state.regionState);
@@ -78,6 +154,7 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
         layerState.dateLayers,
         regionState.selectedRegionIndex,
         opacity,
+        dispatch,
     ]);
 
     const loadTifLayer = async (layerFile: any, isMounted: boolean) => {
@@ -119,6 +196,15 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
                 maxs: georaster.maxs,
             });
 
+            // Store the data range in Redux for the legend
+            const layerKey = `${layerState.selectedDate}_${layerState.selectedLayer}`;
+            dispatch(
+                setLayerDataRange(layerKey, {
+                    min: georaster.mins[0],
+                    max: georaster.maxs[0],
+                })
+            );
+
             // Check if the georaster bounds are within reasonable distance of current map view
             const georasterBounds = {
                 south: georaster.ymin,
@@ -158,8 +244,18 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
                     const max = georaster.maxs[0];
                     const normalized = (pixelValue - min) / (max - min);
 
-                    const intensity = Math.floor(normalized * 255);
-                    return `rgba(${intensity}, ${intensity}, ${intensity}, ${opacity})`;
+                    // Clamp normalized value between 0 and 1
+                    const clampedNormalized = Math.max(
+                        0,
+                        Math.min(1, normalized)
+                    );
+
+                    // Get color based on layer type and normalized value
+                    return getLayerColor(
+                        layerFile.name,
+                        clampedNormalized,
+                        opacity
+                    );
                 },
                 resolution: 256,
                 debugLevel: 1,
@@ -174,7 +270,7 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
             // Log success
             geoRasterLayer.on("load", () => {
                 console.log(
-                    `✅ TIF layer ${layerFile.name} loaded and displayed successfully`
+                    `✅ TIF layer ${layerFile.name} loaded and displayed successfully with custom color palette and data range stored`
                 );
             });
 

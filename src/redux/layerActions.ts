@@ -10,9 +10,12 @@ export const FETCH_LAYERS_FAILURE = "FETCH_LAYERS_FAILURE";
 export const SET_SELECTED_DATE = "SET_SELECTED_DATE";
 export const SET_SELECTED_LAYER = "SET_SELECTED_LAYER";
 export const CLEAR_LAYERS = "CLEAR_LAYERS";
+export const SET_LAYER_DATA_RANGE = "SET_LAYER_DATA_RANGE";
 
 /* Action creators */
-export const fetchLayersRequest = () => ({ type: FETCH_LAYERS_REQUEST });
+export const fetchLayersRequest = () => ({
+    type: FETCH_LAYERS_REQUEST,
+});
 export const fetchLayersSuccess = (data: DateLayers[]) => ({
     type: FETCH_LAYERS_SUCCESS,
     payload: data,
@@ -30,14 +33,22 @@ export const setSelectedLayer = (layerName: string | null) => ({
     payload: layerName,
 });
 export const clearLayers = () => ({ type: CLEAR_LAYERS });
+export const setLayerDataRange = (
+    layerKey: string,
+    range: { min: number; max: number }
+) => ({
+    type: SET_LAYER_DATA_RANGE,
+    payload: { layerKey, range },
+});
 
 /* Thunk that calls the API */
 export const fetchLayers =
-    (): ThunkAction<void, RootState, unknown, AnyAction> =>
+    (payload: any): ThunkAction<void, RootState, unknown, AnyAction> =>
     async (dispatch) => {
         try {
             dispatch(fetchLayersRequest());
-            const layers = await fetchLayerTifs();
+            // TODO: add region_name, start_date, end_date
+            const layers = await fetchLayerTifs(payload);
             dispatch(fetchLayersSuccess(layers));
         } catch (err: any) {
             dispatch(

@@ -6,6 +6,7 @@ import {
     SET_SELECTED_DATE,
     SET_SELECTED_LAYER,
     CLEAR_LAYERS,
+    SET_LAYER_DATA_RANGE,
 } from "./layerActions";
 import { DateLayers } from "@/api/layers";
 
@@ -15,6 +16,7 @@ export interface LayerState {
     dateLayers: DateLayers[];
     selectedDate: string | null;
     selectedLayer: string | null;
+    layerDataRanges: Record<string, { min: number; max: number }>;
 }
 
 const initialState: LayerState = {
@@ -22,6 +24,7 @@ const initialState: LayerState = {
     dateLayers: [],
     selectedDate: null,
     selectedLayer: null,
+    layerDataRanges: {},
 };
 
 export const layerReducer = (state = initialState, action: any): LayerState => {
@@ -49,6 +52,14 @@ export const layerReducer = (state = initialState, action: any): LayerState => {
             };
         case SET_SELECTED_LAYER:
             return { ...state, selectedLayer: action.payload };
+        case SET_LAYER_DATA_RANGE:
+            return {
+                ...state,
+                layerDataRanges: {
+                    ...state.layerDataRanges,
+                    [action.payload.layerKey]: action.payload.range,
+                },
+            };
         case CLEAR_LAYERS:
             return initialState;
         default:
