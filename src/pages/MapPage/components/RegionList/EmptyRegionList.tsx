@@ -10,7 +10,7 @@ function EmptyRegionList({ onAddClick }: EmptyRegionListProps) {
     return (
         <div className="absolute flex flex-col bg-white p-3 shadow-lg rounded-md gap-2 min-w-60 m-4">
             <div className="flex flex-row justify-between content-center gap-5 p-2">
-                <h2 className="text-md font-bold align-middle">Regions</h2>
+                <h2 className="text-md font-bold align-middle">Areas</h2>
                 <Button className="m-0" onClick={onAddClick}>
                     + Add
                 </Button>

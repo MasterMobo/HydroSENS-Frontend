@@ -93,6 +93,7 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
         if (
             !dashboard.loading &&
             !dashboard.error &&
+            dashboard?.outputs &&
             Object.keys(dashboard.outputs).length > 0
         ) {
             const formatLocal = (d: Date) => {
@@ -360,14 +361,22 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
                         )}
 
                         {/* No Data */}
+
+                        {settings.selectedMetrics.length === 0 && (
+                            <div className="flex items-center justify-center h-64">
+                                <span className="text-lg text-slate-600">
+                                    No metrics selected. Please open settings to
+                                    select metrics to display.
+                                </span>
+                            </div>
+                        )}
                         {!dashboard.loading &&
                             !dashboard.error &&
-                            gauges.length === 0 &&
-                            settings.selectedMetrics.length === 0 && (
+                            gauges?.length === 0 && (
                                 <div className="flex items-center justify-center h-64">
                                     <span className="text-lg text-slate-600">
-                                        No metrics selected. Please open
-                                        settings to select metrics to display.
+                                        No data is available for this date
+                                        range. Please selected a new date range.
                                     </span>
                                 </div>
                             )}
