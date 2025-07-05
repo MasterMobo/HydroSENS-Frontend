@@ -48,13 +48,24 @@ export function DateRangePicker() {
     // Handle single date clicks for sequential selection
     const handleDateClick = (date: Date) => {
         if (selectingStart) {
-            // First click or odd clicks - set start date and default end date to same date
+            // First click - set start date and default end date to same date
             dispatch(setStartDate(date.getTime()));
             dispatch(setEndDate(date.getTime())); // Default end date to same as start date
             setSelectingStart(false);
         } else {
-            // Second click or even clicks - set end date
-            dispatch(setEndDate(date.getTime()));
+            // Second click - compare with existing start date and assign accordingly
+            const currentStartDate = new Date(startDate!);
+            const clickedDate = date;
+            
+            if (clickedDate >= currentStartDate) {
+                // If clicked date is after or equal to start date, it becomes end date
+                dispatch(setEndDate(clickedDate.getTime()));
+            } else {
+                // If clicked date is before start date, it becomes new start date
+                // and the previous start date becomes end date
+                dispatch(setStartDate(clickedDate.getTime()));
+                dispatch(setEndDate(currentStartDate.getTime()));
+            }
             setSelectingStart(true);
         }
     };
