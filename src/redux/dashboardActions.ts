@@ -65,6 +65,7 @@ export const fetchHydrosens =
         coordinates: coordinates,
         num_coordinates: coordinates.length,
         statistics: fullStatisticsString,
+        region_name: region.name || "Unknown Region",
       };
 
       console.log("Payload with dynamic statistics:", payload);
