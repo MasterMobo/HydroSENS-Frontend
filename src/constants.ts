@@ -1,4 +1,4 @@
-export const MAX_REGION_AREA_KMSQ = 100;
+export const MAX_REGION_AREA_KMSQ = 75;
 export const MAX_REGION_SIZE_BYTES = 50331648;
 // Define color palettes for each layer type as arrays of RGB colors
 export const COLOR_PALETTES = {
