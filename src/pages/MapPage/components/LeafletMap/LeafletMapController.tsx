@@ -1,18 +1,7 @@
 import { Region } from "@/types/region";
-import { LatLngBounds, LatLng, Map } from "leaflet";
+import { LatLngBounds, LatLng } from "leaflet";
 import { useEffect } from "react";
 import { useMap } from "react-leaflet";
-
-const recenter = (map: Map, regions: Region[]) => {
-    if (regions.length <= 0) return;
-
-    const bounds = new LatLngBounds(
-        regions.map((region) =>
-            region.coordinates.map((coord) => new LatLng(coord[0], coord[1]))
-        )
-    );
-    map.fitBounds(bounds);
-};
 
 // This component will handle map operations like fitting bounds
 function LeafletMapController({
@@ -26,7 +15,7 @@ function LeafletMapController({
 
     useEffect(() => {
         if (selectedRegionIndex === null) {
-            return recenter(map, regions);
+            return;
         }
 
         const regionCoords = regions[selectedRegionIndex].coordinates;
