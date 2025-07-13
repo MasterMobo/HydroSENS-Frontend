@@ -209,7 +209,7 @@ const LayerView: React.FC = () => {
         );
     }
 
-    if (error) {
+    if (error && !error.includes("404")) {
         return (
             <Card className="w-40 mr-6 bg-white/95 backdrop-blur-sm shadow-lg py-4">
                 <CardContent className="px-4 py-0">
