@@ -1,3 +1,4 @@
+import initialRegions from "@/data/initialRegions";
 import { Region } from "@/types/region";
 
 const REGIONS_STORAGE_KEY = "saved_regions";
@@ -19,7 +20,7 @@ export const saveRegionsToStorage = (regions: Region[]): void => {
             regions,
             lastUpdated: new Date().toISOString(),
         };
-        
+
         localStorage.setItem(REGIONS_STORAGE_KEY, JSON.stringify(dataToStore));
         console.log(`Saved ${regions.length} regions to localStorage`);
     } catch (error) {
@@ -34,14 +35,16 @@ export const saveRegionsToStorage = (regions: Region[]): void => {
 export const loadRegionsFromStorage = (): Region[] => {
     try {
         const storedData = localStorage.getItem(REGIONS_STORAGE_KEY);
-        
+
         if (!storedData) {
-            console.log("No saved regions found in localStorage");
-            return [];
+            console.log(
+                "No saved regions found in localStorage. Using default regions."
+            );
+            return initialRegions;
         }
 
         const parsedData: StoredRegionsData = JSON.parse(storedData);
-        
+
         // Validate the data structure
         if (!parsedData.regions || !Array.isArray(parsedData.regions)) {
             console.warn("Invalid regions data in localStorage");
@@ -49,17 +52,22 @@ export const loadRegionsFromStorage = (): Region[] => {
         }
 
         // Validate each region object
-        const validRegions = parsedData.regions.filter(region => 
-            region &&
-            typeof region.name === 'string' &&
-            typeof region.area === 'number' &&
-            typeof region.color === 'string' &&
-            Array.isArray(region.coordinates) &&
-            region.coordinates.length > 0
+        const validRegions = parsedData.regions.filter(
+            (region) =>
+                region &&
+                typeof region.name === "string" &&
+                typeof region.area === "number" &&
+                typeof region.color === "string" &&
+                Array.isArray(region.coordinates) &&
+                region.coordinates.length > 0
         );
 
         if (validRegions.length !== parsedData.regions.length) {
-            console.warn(`Filtered out ${parsedData.regions.length - validRegions.length} invalid regions`);
+            console.warn(
+                `Filtered out ${
+                    parsedData.regions.length - validRegions.length
+                } invalid regions`
+            );
         }
 
         console.log(`Loaded ${validRegions.length} regions from localStorage`);
@@ -85,16 +93,20 @@ export const clearRegionsFromStorage = (): void => {
 /**
  * Get storage info (for debugging/UI purposes)
  */
-export const getStorageInfo = (): { hasData: boolean; count: number; lastUpdated: string | null } => {
+export const getStorageInfo = (): {
+    hasData: boolean;
+    count: number;
+    lastUpdated: string | null;
+} => {
     try {
         const storedData = localStorage.getItem(REGIONS_STORAGE_KEY);
-        
+
         if (!storedData) {
             return { hasData: false, count: 0, lastUpdated: null };
         }
 
         const parsedData: StoredRegionsData = JSON.parse(storedData);
-        
+
         return {
             hasData: true,
             count: parsedData.regions?.length || 0,
