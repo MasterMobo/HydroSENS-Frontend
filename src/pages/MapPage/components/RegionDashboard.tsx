@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { GaugeCard } from "./GaugeCard";
@@ -54,7 +54,7 @@ const metricMeta = {
         label: "Precipitation",
         color: "#facc15",
         min: 0,
-        max: 100,
+        max: 25,
         unit: "mm",
         chartType: "bar",
     },
@@ -88,6 +88,13 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
 
+    // Track the last date range that was used for API call to prevent unnecessary calls
+    const lastApiCallRef = useRef<{
+        startDate: number;
+        endDate: number;
+        regionIndex: number | null;
+    } | null>(null);
+
     /* Fetch layers after dashboard data is loaded successfully */
     useEffect(() => {
         if (
@@ -120,6 +127,7 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
         dateState.startDate,
         dateState.endDate,
     ]);
+
     // Notify parent component when PDF overlay state changes
     useEffect(() => {
         onPdfOverlayToggle?.(isPdfViewerOpen);
@@ -144,37 +152,55 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
         }
     }, [regionState]);
 
-    /* Trigger fetch whenever region or date changes */
+    /* CONTROLLED API TRIGGER - Only fetch when valid date range is confirmed */
     useEffect(() => {
+        // Check if we have all required conditions
         if (
-            regionState.selectedRegionIndex != null &&
+            regionState.selectedRegionIndex !== null &&
             dateState.startDate &&
-            dateState.endDate
+            dateState.endDate &&
+            dateState.startDate !== dateState.endDate // Must be a valid range, not single date
         ) {
-            dispatch(fetchHydrosens());
+            // Check if this is a new API call (different from last one)
+            const currentCall = {
+                startDate: dateState.startDate,
+                endDate: dateState.endDate,
+                regionIndex: regionState.selectedRegionIndex,
+            };
+
+            const isDifferentCall = !lastApiCallRef.current ||
+                lastApiCallRef.current.startDate !== currentCall.startDate ||
+                lastApiCallRef.current.endDate !== currentCall.endDate ||
+                lastApiCallRef.current.regionIndex !== currentCall.regionIndex;
+
+            if (isDifferentCall) {
+                console.log("Triggering API call with valid date range:", {
+                    startDate: new Date(dateState.startDate),
+                    endDate: new Date(dateState.endDate),
+                    region: regionState.regions[regionState.selectedRegionIndex]?.name
+                });
+                
+                // Update the ref to track this call
+                lastApiCallRef.current = currentCall;
+                
+                // Trigger the API call
+                dispatch(fetchHydrosens());
+            }
         }
     }, [
         dispatch,
         regionState.selectedRegionIndex,
         dateState.startDate,
         dateState.endDate,
+        regionState.regions
     ]);
-
-    /* Fetch layers after dashboard data is loaded successfully */
-    // useEffect(() => {
-    //     if (
-    //         !dashboard.loading &&
-    //         !dashboard.error &&
-    //         Object.keys(dashboard.outputs).length > 0
-    //     ) {
-    //         dispatch(fetchLayers());
-    //     }
-    // }, [dispatch, dashboard.loading, dashboard.error, dashboard.outputs]);
 
     /* Clear layers when region is deselected */
     useEffect(() => {
         if (regionState.selectedRegionIndex === null) {
             dispatch(clearLayers());
+            // Also clear the API call reference
+            lastApiCallRef.current = null;
         }
     }, [dispatch, regionState.selectedRegionIndex]);
 
@@ -319,6 +345,9 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
 
     const hasData = gauges.length > 0 && !dashboard.loading && !dashboard.error;
 
+    // Check if we have a valid date range for showing content
+    const hasValidDateRange = dateState.startDate && dateState.endDate && dateState.startDate !== dateState.endDate;
+
     return (
         <>
             <div className="absolute top-0 right-0 w-[50vw] h-full bg-gray-100 border-l shadow-lg">
@@ -338,7 +367,7 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
                         </header>
 
                         {/* Loading */}
-                        {dashboard.loading && (
+                        {hasValidDateRange && dashboard.loading && (
                             <div className="flex flex-col items-center justify-center h-64">
                                 <span className="text-lg font-medium text-slate-700">
                                     Loading
@@ -360,9 +389,8 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
                             </div>
                         )}
 
-                        {/* No Data */}
-
-                        {settings.selectedMetrics.length === 0 && (
+                        {/* No Metrics Selected */}
+                        {hasValidDateRange && settings.selectedMetrics.length === 0 && (
                             <div className="flex items-center justify-center h-64">
                                 <span className="text-lg text-slate-600">
                                     No metrics selected. Please open settings to
@@ -370,9 +398,13 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
                                 </span>
                             </div>
                         )}
-                        {!dashboard.loading &&
+
+                        {/* No Data */}
+                        {hasValidDateRange &&
+                            !dashboard.loading &&
                             !dashboard.error &&
-                            gauges?.length === 0 && (
+                            gauges?.length === 0 &&
+                            settings.selectedMetrics.length > 0 && (
                                 <div className="flex items-center justify-center h-64">
                                     <span className="text-lg text-slate-600">
                                         No data is available for this date
@@ -383,7 +415,7 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
                             )}
 
                         {/* Error */}
-                        {dashboard.error && (
+                        {hasValidDateRange && dashboard.error && (
                             <p className="text-center text-red-600">
                                 {dashboard.error}
                             </p>
