@@ -19,6 +19,9 @@ function getWiFiIP() {
   return '0.0.0.0';
 }
 
+// Check if we want Wi-Fi enabled (default is localhost only)
+const ENABLE_WIFI = process.env.ENABLE_WIFI === 'true';
+
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [react(), tailwindcss()],
@@ -28,7 +31,7 @@ export default defineConfig({
         },
     },
     server: {
-        host: getWiFiIP(),
+        host: ENABLE_WIFI ? getWiFiIP() : 'localhost',
         port: 5173,
         proxy: {
             '/analyze': {
@@ -41,7 +44,6 @@ export default defineConfig({
                 changeOrigin: true,
                 secure: false,
             }
-            // Add any other backend endpoints
         }
     },
 });
