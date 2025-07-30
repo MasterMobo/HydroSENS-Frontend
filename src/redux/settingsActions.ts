@@ -16,8 +16,8 @@ export const AVAILABLE_METRICS = [
 
 // Endmember types
 export const ENDMEMBER_TYPES = [
-  { value: "3", label: "Agricultural" },
-  { value: "2", label: "Urban" },
+  { value: "2", label: "Agricultural" },
+  { value: "3", label: "Urban" },
 ] as const
 
 export type MetricKey = (typeof AVAILABLE_METRICS)[number]["key"]
