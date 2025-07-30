@@ -312,18 +312,17 @@ export default function ShapefileUploadModal({
                     )}
 
                     {hasMultipleShapefiles && (
-                        <div className="flex items-start gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <div className="flex items-start gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                             <AlertCircle
                                 size={20}
-                                className="text-green-600 mt-0.5 flex-shrink-0"
+                                className="text-yellow-600 mt-0.5 flex-shrink-0"
                             />
-                            <div className="text-sm text-green-700">
+                            <div className="text-sm text-yellow-700">
                                 <p className="font-medium mb-1">
-                                    Detected multiple polygons in the shapefile.
+                                    Multiple polygons detected.
                                 </p>
                                 <p>
-                                    You won't be able to edit the area after
-                                    importing.
+                                    To enable shape editing, please upload polygons individually.
                                 </p>
                             </div>
                         </div>

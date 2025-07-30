@@ -31,6 +31,23 @@ const LAYER_RANGES = {
     soil: { min: 0, max: 100, unit: "%" },
 };
 
+// Define user-friendly display names for each layer
+const LAYER_DISPLAY_NAMES = {
+    vegetation: "Vegetation",
+    impervious: "Impervious",
+    CCN_final: "Curve Number",
+    Runoff: "Runoff",
+    NDVI: "NDVI",
+    Vegetation_Health: "Vegetation Health",
+    soil: "Soil",
+};
+
+// Helper function to get display name for a layer
+const getLayerDisplayName = (layerName: string): string => {
+    const baseName = layerName.replace(".tif", "");
+    return LAYER_DISPLAY_NAMES[baseName as keyof typeof LAYER_DISPLAY_NAMES] || baseName;
+};
+
 // Helper function to interpolate between multiple colors in a palette
 const interpolateColorArray = (
     colors: number[][],
@@ -170,12 +187,12 @@ const LayerView: React.FC = () => {
     const selectedDateLayers =
         dateLayers.find((dl) => dl.date === selectedDate)?.layers || [];
 
-    // Add a "No Layer" option at the beginning
+    // Add a "No Layer" option at the beginning with user-friendly display names
     const layersWithNoOption = [
         { name: "none", displayName: "No Layer" },
         ...selectedDateLayers.map((layer) => ({
             name: layer.name,
-            displayName: layer.name.replace(".tif", ""),
+            displayName: getLayerDisplayName(layer.name),
         })),
     ];
 
