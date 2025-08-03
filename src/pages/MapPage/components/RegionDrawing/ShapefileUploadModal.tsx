@@ -322,7 +322,8 @@ export default function ShapefileUploadModal({
                                     Multiple polygons detected.
                                 </p>
                                 <p>
-                                    To enable shape editing, please upload polygons individually.
+                                    Shape editing is not supported for multiple
+                                    polygons.
                                 </p>
                             </div>
                         </div>
@@ -345,9 +346,7 @@ export default function ShapefileUploadModal({
                                 components
                             </li>
                             <li>• Required: .shp, .shx, .dbf (± .prj)</li>
-                            <li>
-                                • Polygon, MultiPolygon, LineString or Point
-                            </li>
+                            <li>• Polygon or MultiPolygon</li>
                             <li>
                                 • Multiple features → split into separate areas
                             </li>
