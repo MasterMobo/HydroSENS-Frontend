@@ -3,7 +3,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { GaugeCard } from "./GaugeCard";
 import { ChartCard } from "./ChartCard";
-import { Download, Star, Loader2 } from "lucide-react";
+import { Star, Loader2 } from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
@@ -12,8 +12,7 @@ import { fetchHydrosens } from "@/redux/dashboardActions";
 import { fetchLayers, clearLayers } from "@/redux/layerActions";
 import { HydrosensOutputs } from "@/types/hydrosens";
 import DownloadCSVButton from "./DownloadCSVButton";
-import { MetricKey } from "@/redux/settingsActions";
-import { formatDate } from "date-fns";
+
 import { generateReport, GenerateReportPayload } from "@/api/reports";
 import { PDFViewerOverlay } from "./PDFViewerOverlay";
 
@@ -232,7 +231,10 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
 
         Object.entries(outputs).forEach(([date, metrics]) => {
             selectedMetrics.forEach((k) => {
-                chartSeries[k].push({ date, value: (metrics as any)[k] });
+                chartSeries[k].push({
+                    date,
+                    value: (metrics as unknown as Record<string, number>)[k],
+                });
             });
         });
 
@@ -241,16 +243,51 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
         const nDates = dateKeys.length;
         const gaugeArr = selectedMetrics.map((k) => {
             let sum = 0;
+            const values: number[] = [];
             for (const d of dateKeys) {
-                sum += (outputs[d] as any)[k];
+                const value = (outputs[d] as unknown as Record<string, number>)[
+                    k
+                ];
+                sum += value;
+                values.push(value);
             }
             const avg = sum / nDates;
 
             // Round to two decimals, small values become 0.00
             const rounded = Number(Math.abs(avg) < 0.01 ? 0 : avg.toFixed(2));
 
+            // Calculate dynamic min/max for temperature and precipitation
+            let min: number, max: number;
+            if (k === "temperature" || k === "precipitation") {
+                const dataMin = Math.min(...values);
+                const dataMax = Math.max(...values);
+
+                if (nDates === 1) {
+                    // If only one date, pad the range so the average is in the middle
+                    const range = Math.max(1, Math.abs(dataMax - dataMin) || 1);
+                    const padding = range * 0.5;
+                    min = Number((dataMin - padding).toFixed(2));
+                    max = Number((dataMax + padding).toFixed(2));
+                } else {
+                    // Use actual data range with small padding
+                    const range = dataMax - dataMin;
+                    const padding = range * 0.1; // 10% padding
+                    min = Number((dataMin - padding).toFixed(2));
+                    max = Number((dataMax + padding).toFixed(2));
+                }
+
+                // Ensure precipitation min is never negative
+                if (k === "precipitation") {
+                    min = Math.max(0, min);
+                }
+            } else {
+                // Use static min/max for other metrics
+                min = metricMeta[k].min;
+                max = metricMeta[k].max;
+            }
+
             // Determine qualitative description
-            const { min, max, label, unit } = metricMeta[k];
+            const { label, unit } = metricMeta[k];
             const ratio = (avg - min) / (max - min);
             let desc = "";
             if (ratio < 0.25) desc = `Very Low ${label}`;
