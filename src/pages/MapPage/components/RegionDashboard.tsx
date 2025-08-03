@@ -93,13 +93,27 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
     const [layersFetchedForOutputs, setLayersFetchedForOutputs] =
         useState<string>("");
 
-    /* Fetch layers after dashboard data is loaded successfully */
+    // Track if dashboard has just finished loading
+    const [dashboardJustLoaded, setDashboardJustLoaded] = useState(false);
+
+    /* Track when dashboard finishes loading */
     useEffect(() => {
         if (
             !dashboard.loading &&
             !dashboard.error &&
             dashboard?.outputs &&
-            Object.keys(dashboard.outputs).length > 0 &&
+            Object.keys(dashboard.outputs).length > 0
+        ) {
+            setDashboardJustLoaded(true);
+        } else {
+            setDashboardJustLoaded(false);
+        }
+    }, [dashboard.loading, dashboard.error, dashboard.outputs]);
+
+    /* Fetch layers after dashboard data is loaded successfully */
+    useEffect(() => {
+        if (
+            dashboardJustLoaded &&
             regionState.selectedRegionIndex !== null &&
             !layerState.loading
         ) {
@@ -129,8 +143,7 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
         }
     }, [
         dispatch,
-        dashboard.loading,
-        dashboard.error,
+        dashboardJustLoaded,
         dashboard.outputs,
         regionState.selectedRegionIndex,
         regionState.regions[regionState.selectedRegionIndex || 0]?.name,
