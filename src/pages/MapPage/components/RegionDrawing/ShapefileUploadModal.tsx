@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Upload, X, FileText, AlertCircle } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     setCurrentCoordinates,
     setRegionName,
@@ -13,7 +13,8 @@ import { setViewMode } from "@/redux/viewModeActions";
 import { ViewMode } from "@/types/viewMode";
 import { generateRandomColor } from "@/utils/colors";
 import { calculatePolygonArea } from "@/utils/map";
-// @ts-ignore shpjs has imperfect typings
+import { RootState } from "@/redux/store";
+// @ts-expect-error shpjs has imperfect typings
 import shp from "shpjs";
 
 interface ShapefileUploadModalProps {
@@ -40,6 +41,22 @@ export default function ShapefileUploadModal({
     const [error, setError] = useState<string | null>(null);
     const [uploadedFile, setUploadedFile] = useState<File | null>(null);
     const [hasMultipleShapefiles, setHasMultipleShapefiles] = useState(false);
+    const [duplicateNames, setDuplicateNames] = useState<string[]>([]);
+
+    const { regions } = useSelector((state: RootState) => state.regionState);
+
+    // Check for duplicate region names
+    const checkForDuplicateNames = useCallback(
+        (proposedNames: string[]): string[] => {
+            const existingNames = regions.map((region) =>
+                region.name.toLowerCase()
+            );
+            return proposedNames.filter((name) =>
+                existingNames.includes(name.toLowerCase())
+            );
+        },
+        [regions]
+    );
 
     const convertGeometryToCoordinates = useCallback(
         (geometry: any): [number, number][] => {
@@ -80,14 +97,6 @@ export default function ShapefileUploadModal({
             const buffer = await file.arrayBuffer();
             const geojson: ParsedShapefile = await shp(buffer);
 
-            // Check if we have multiple features that would result in multiple regions
-            const polygonCount =
-                geojson.features?.filter(
-                    (feat) =>
-                        feat.geometry.type === "Polygon" ||
-                        feat.geometry.type === "MultiPolygon"
-                ).length || 0;
-
             // Also count MultiPolygon rings
             let totalShapes = 0;
             geojson.features?.forEach((feat) => {
@@ -109,6 +118,7 @@ export default function ShapefileUploadModal({
         async (file: File) => {
             setIsLoading(true);
             setError(null);
+            setDuplicateNames([]);
 
             try {
                 const buffer = await file.arrayBuffer();
@@ -149,6 +159,24 @@ export default function ShapefileUploadModal({
 
                 // --- MULTI-POLYGON IMPORT ---
                 if (shapes.length > 1) {
+                    // Generate proposed names for all shapes
+                    const proposedNames = shapes.map(
+                        (_, i) => `${baseName} #${i + 1}`
+                    );
+
+                    // Check for duplicate names
+                    const duplicates = checkForDuplicateNames(proposedNames);
+
+                    if (duplicates.length > 0) {
+                        setDuplicateNames(duplicates);
+                        setError(
+                            `Duplicate region names detected: ${duplicates.join(
+                                ", "
+                            )}`
+                        );
+                        return;
+                    }
+
                     shapes.forEach((coords, i) => {
                         dispatch(
                             addRegion({
@@ -172,6 +200,17 @@ export default function ShapefileUploadModal({
                 const coords = shapes[0];
                 if (!coords?.length)
                     throw new Error("Failed to extract coordinates.");
+
+                // Check for duplicate name for single polygon
+                const duplicates = checkForDuplicateNames([baseName]);
+                if (duplicates.length > 0) {
+                    setDuplicateNames(duplicates);
+                    setError(
+                        `A region with the name "${baseName}" already exists`
+                    );
+                    return;
+                }
+
                 dispatch(setCurrentCoordinates(coords));
                 dispatch(setRegionName(baseName));
                 onClose(); // just close this modal
@@ -181,7 +220,13 @@ export default function ShapefileUploadModal({
                 setIsLoading(false);
             }
         },
-        [convertGeometryToCoordinates, dispatch, onClose, onShapefileLoaded]
+        [
+            convertGeometryToCoordinates,
+            dispatch,
+            onClose,
+            onShapefileLoaded,
+            checkForDuplicateNames,
+        ]
     );
 
     const handleFileSelect = useCallback(
@@ -235,6 +280,7 @@ export default function ShapefileUploadModal({
         setError(null);
         setIsDragOver(false);
         setHasMultipleShapefiles(false);
+        setDuplicateNames([]);
         onClose();
     }, [onClose]);
 
@@ -336,6 +382,31 @@ export default function ShapefileUploadModal({
                         </div>
                     )}
 
+                    {duplicateNames.length > 0 && (
+                        <div className="flex items-start gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                            <AlertCircle
+                                size={20}
+                                className="text-red-600 mt-0.5 flex-shrink-0"
+                            />
+                            <div className="text-sm text-red-700">
+                                <p className="font-medium mb-1">
+                                    Duplicate region names detected:
+                                </p>
+                                <ul className="list-disc list-inside space-y-1">
+                                    {duplicateNames.map((name, index) => (
+                                        <li key={index} className="text-xs">
+                                            "{name}"
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="text-xs mt-2">
+                                    Please rename your shapefile or remove
+                                    existing regions with these names.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="bg-blue-50 p-3 rounded-lg">
                         <h4 className="text-sm font-medium text-blue-900 mb-2">
                             Shapefile Requirements:
@@ -348,14 +419,8 @@ export default function ShapefileUploadModal({
                             <li>• Required: .shp, .shx, .dbf (± .prj)</li>
                             <li>• Polygon or MultiPolygon</li>
                             <li>
-                                • Multiple features → split into separate areas
-                            </li>
-                            <li>• Coordinates converted to lat/lng format</li>
-                            <li>
-                                •{" "}
-                                {hasMultipleShapefiles
-                                    ? "Note: Multiple areas cannot be edited after import"
-                                    : "Single area can be edited after import"}
+                                • Multiple features are split into separate
+                                areas
                             </li>
                         </ul>
                     </div>
@@ -363,7 +428,11 @@ export default function ShapefileUploadModal({
                     <div className="flex gap-2">
                         <Button
                             onClick={handleUpload}
-                            disabled={!uploadedFile || isLoading}
+                            disabled={
+                                !uploadedFile ||
+                                isLoading ||
+                                duplicateNames.length > 0
+                            }
                             className="flex-1"
                         >
                             {isLoading ? "Processing..." : "Upload & Import"}

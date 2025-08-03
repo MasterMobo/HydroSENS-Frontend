@@ -24,6 +24,7 @@ import {
     InfoIcon,
     Upload,
     Pentagon,
+    AlertCircle,
 } from "lucide-react";
 import { MAX_REGION_AREA_KMSQ } from "@/constants";
 import {
@@ -38,7 +39,6 @@ interface AddRegionModalProps {
     onDrawingModeChange: (mode: DrawingMode) => void;
     currentDrawingMode: DrawingMode;
     hasActiveShape: boolean;
-    onEditMode: () => void;
     onDeleteShape: () => void;
     onFinishEdit: () => void;
 }
@@ -47,7 +47,6 @@ function AddRegionModal({
     onDrawingModeChange,
     currentDrawingMode,
     hasActiveShape,
-    onEditMode,
     onDeleteShape,
     onFinishEdit,
 }: AddRegionModalProps) {
@@ -57,6 +56,17 @@ function AddRegionModal({
     const { regionName, currentCoordinates } = useSelector(
         (state: RootState) => state.regionDrawingState
     );
+
+    const { regions } = useSelector((state: RootState) => state.regionState);
+
+    // Check for duplicate region names
+    const isDuplicateName = useMemo(() => {
+        if (!regionName.trim()) return false;
+        return regions.some(
+            (region) =>
+                region.name.toLowerCase() === regionName.trim().toLowerCase()
+        );
+    }, [regionName, regions]);
 
     const currentArea = useMemo(() => {
         if (currentCoordinates.length === 0) {
@@ -101,7 +111,12 @@ function AddRegionModal({
     };
 
     const handleSave = useCallback(() => {
-        if (!regionName.trim() || currentCoordinates.length === 0) return;
+        if (
+            !regionName.trim() ||
+            currentCoordinates.length === 0 ||
+            isDuplicateName
+        )
+            return;
 
         const newRegion: Region = {
             name: regionName.trim(),
@@ -112,7 +127,7 @@ function AddRegionModal({
 
         dispatch(addRegion(newRegion));
         handleClose();
-    }, [currentArea, currentCoordinates, regionName]);
+    }, [currentArea, currentCoordinates, regionName, isDuplicateName]);
 
     const handleClose = () => {
         dispatch(resetDrawingState());
@@ -127,12 +142,6 @@ function AddRegionModal({
     const handleEditDone = () => {
         // Complete the edit mode and save the edited coordinates
         onFinishEdit();
-    };
-
-    const handleEditCancel = () => {
-        // Cancel edit mode - this could potentially revert changes
-        // For now, just exit edit mode
-        onDrawingModeChange(null);
     };
 
     const handleOpenShapefileModal = () => {
@@ -343,9 +352,21 @@ function AddRegionModal({
                             value={regionName}
                             onChange={handleRegionNameChange}
                             placeholder="Enter area name..."
-                            className="w-full"
+                            className={`w-full ${
+                                isDuplicateName
+                                    ? "border-red-500 focus:border-red-500"
+                                    : ""
+                            }`}
                             disabled={isEditMode}
                         />
+                        {isDuplicateName && (
+                            <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                                <AlertCircle size={14} />
+                                <span>
+                                    A region with this name already exists
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex gap-2">
@@ -355,7 +376,8 @@ function AddRegionModal({
                                 isEditMode ||
                                 isOverAreaSizeLimit ||
                                 !regionName.trim() ||
-                                currentCoordinates.length === 0
+                                currentCoordinates.length === 0 ||
+                                isDuplicateName
                             }
                             className="flex-1"
                         >
