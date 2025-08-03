@@ -161,7 +161,7 @@ export default function ShapefileUploadModal({
                 if (shapes.length > 1) {
                     // Generate proposed names for all shapes
                     const proposedNames = shapes.map(
-                        (_, i) => `${baseName} #${i + 1}`
+                        (_, i) => `${baseName} ${i + 1}`
                     );
 
                     // Check for duplicate names
@@ -180,7 +180,7 @@ export default function ShapefileUploadModal({
                     shapes.forEach((coords, i) => {
                         dispatch(
                             addRegion({
-                                name: `${baseName} #${i + 1}`,
+                                name: `${baseName} ${i + 1}`,
                                 coordinates: coords,
                                 color: generateRandomColor(),
                                 area: calculatePolygonArea(coords),
