@@ -31,10 +31,10 @@ export function DateRangeConfirmationModal({
     isLoading = false,
 }: DateRangeConfirmationModalProps) {
     const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString('en-US', {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric'
+        return new Date(timestamp).toLocaleDateString("en-US", {
+            month: "short",
+            day: "2-digit",
+            year: "numeric",
         });
     };
 
@@ -55,36 +55,45 @@ export function DateRangeConfirmationModal({
                         Analyze Region
                     </DialogTitle>
                     <DialogDescription>
-                        Confirm your analysis parameters for the selected region.
+                        Confirm your analysis parameters for the selected
+                        region.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <div className="space-y-4 py-4">
                     <div className="bg-slate-50 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">Region:</span>
-                            <span className="text-sm text-slate-900 font-semibold">{regionName}</span>
+                            <span className="text-sm font-medium text-slate-700">
+                                Region:
+                            </span>
+                            <span className="text-sm text-slate-900 font-semibold">
+                                {regionName}
+                            </span>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">Date Range:</span>
+                            <span className="text-sm font-medium text-slate-700">
+                                Date Range:
+                            </span>
                             <div className="flex items-center gap-2 text-sm text-slate-900">
                                 <Calendar className="h-4 w-4 text-slate-500" />
-                                <span>{formatDate(startDate)} - {formatDate(endDate)}</span>
+                                <span>
+                                    {formatDate(startDate)} -{" "}
+                                    {formatDate(endDate)}
+                                </span>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium text-slate-700">Duration:</span>
+                            <span className="text-sm font-medium text-slate-700">
+                                Duration:
+                            </span>
                             <span className="text-sm text-slate-900">
-                                {calculateDays()} {calculateDays() === 1 ? 'day' : 'days'}
+                                {calculateDays()}{" "}
+                                {calculateDays() === 1 ? "day" : "days"}
                             </span>
                         </div>
                     </div>
-                    
-                    <p className="text-sm text-slate-600">
-                        This will analyze the selected region using satellite data and the new date range.
-                    </p>
                 </div>
 
                 <DialogFooter className="flex gap-2 sm:gap-2">
@@ -107,7 +116,7 @@ export function DateRangeConfirmationModal({
                                 Analyzing...
                             </>
                         ) : (
-                            'Start Analysis'
+                            "Start Analysis"
                         )}
                     </Button>
                 </DialogFooter>
