@@ -11,15 +11,34 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteRegion } from "@/redux/regionActions";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
+import { deleteRegionCache } from "@/api/cache";
 
 interface DeleteRegionButtonProps {
     index: number;
 }
 function DeleteRegionButton({ index }: DeleteRegionButtonProps) {
     const dispatch = useDispatch();
+    const { regions } = useSelector((state: RootState) => state.regionState);
 
-    const handleDeleteRegionClick = (index: number) => {
+    const handleDeleteRegionClick = async (index: number) => {
+        try {
+            // Get the region name before deleting the region
+            const regionToDelete = regions[index];
+            if (regionToDelete) {
+                // Delete the cache for this region
+                await deleteRegionCache(regionToDelete.name);
+                console.log(
+                    `Successfully deleted cache for region: ${regionToDelete.name}`
+                );
+            }
+        } catch (error) {
+            console.error("Failed to delete region cache:", error);
+            // Continue with region deletion even if cache deletion fails
+        }
+
+        // Delete the region from Redux state
         dispatch(deleteRegion(index));
     };
 

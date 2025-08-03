@@ -37,10 +37,8 @@ export const loadRegionsFromStorage = (): Region[] => {
         const storedData = localStorage.getItem(REGIONS_STORAGE_KEY);
 
         if (!storedData) {
-            console.log(
-                "No saved regions found in localStorage. Using default regions."
-            );
-            return initialRegions;
+            console.log("No saved regions found in localStorage.");
+            return [];
         }
 
         const parsedData: StoredRegionsData = JSON.parse(storedData);
