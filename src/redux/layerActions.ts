@@ -1,7 +1,7 @@
 import { ThunkAction } from "redux-thunk";
 import { RootState } from "@/redux/store";
 import { AnyAction } from "@reduxjs/toolkit";
-import { fetchLayerTifs, DateLayers } from "@/api/layers";
+import { fetchLayerTifs, DateLayers, FetchLayerTifsPayload } from "@/api/layers";
 
 /* Action types */
 export const FETCH_LAYERS_REQUEST = "FETCH_LAYERS_REQUEST";
@@ -43,16 +43,14 @@ export const setLayerDataRange = (
 
 /* Thunk that calls the API */
 export const fetchLayers =
-    (payload: any): ThunkAction<void, RootState, unknown, AnyAction> =>
+    (payload: FetchLayerTifsPayload): ThunkAction<void, RootState, unknown, AnyAction> =>
     async (dispatch) => {
         try {
             dispatch(fetchLayersRequest());
-            // TODO: add region_name, start_date, end_date
             const layers = await fetchLayerTifs(payload);
             dispatch(fetchLayersSuccess(layers));
-        } catch (err: any) {
-            dispatch(
-                fetchLayersFailure(err.message || "Failed to fetch layers")
-            );
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to fetch layers";
+            dispatch(fetchLayersFailure(errorMessage));
         }
     };

@@ -82,11 +82,16 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
     const dateState = useSelector((s: RootState) => s.dateState);
     const dashboard = useSelector((s: RootState) => s.dashboard);
     const settings = useSelector((s: RootState) => s.settings);
+    const layerState = useSelector((s: RootState) => s.layers);
 
     // Report generation state
     const [isGeneratingReport, setIsGeneratingReport] = useState(false);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [isPdfViewerOpen, setIsPdfViewerOpen] = useState(false);
+
+    // Track if we've already fetched layers for the current dashboard data
+    const [layersFetchedForOutputs, setLayersFetchedForOutputs] =
+        useState<string>("");
 
     /* Fetch layers after dashboard data is loaded successfully */
     useEffect(() => {
@@ -94,7 +99,9 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
             !dashboard.loading &&
             !dashboard.error &&
             dashboard?.outputs &&
-            Object.keys(dashboard.outputs).length > 0
+            Object.keys(dashboard.outputs).length > 0 &&
+            regionState.selectedRegionIndex !== null &&
+            !layerState.loading
         ) {
             const formatLocal = (d: Date) => {
                 const year = d.getFullYear();
@@ -102,23 +109,35 @@ function RegionDashboard({ onPdfOverlayToggle }: RegionDashboardProps) {
                 const day = String(d.getDate()).padStart(2, "0");
                 return `${year}-${month}-${day}`;
             };
-            const { regions, selectedRegionIndex } = regionState;
-            dispatch(
-                fetchLayers({
-                    region_name: regions[selectedRegionIndex || 0].name,
-                    start_date: formatLocal(new Date(dateState.startDate)),
-                    end_date: formatLocal(new Date(dateState.endDate)),
-                })
-            );
+            const selectedRegion =
+                regionState.regions[regionState.selectedRegionIndex];
+
+            // Create a unique key for this dashboard outputs
+            const outputsKey = JSON.stringify(dashboard.outputs);
+
+            // Only fetch if we haven't already fetched for this exact dashboard data
+            if (layersFetchedForOutputs !== outputsKey) {
+                setLayersFetchedForOutputs(outputsKey);
+                dispatch(
+                    fetchLayers({
+                        region_name: selectedRegion.name,
+                        start_date: formatLocal(new Date(dateState.startDate)),
+                        end_date: formatLocal(new Date(dateState.endDate)),
+                    })
+                );
+            }
         }
     }, [
         dispatch,
         dashboard.loading,
         dashboard.error,
         dashboard.outputs,
-        regionState,
+        regionState.selectedRegionIndex,
+        regionState.regions[regionState.selectedRegionIndex || 0]?.name,
         dateState.startDate,
         dateState.endDate,
+        layerState.loading,
+        layersFetchedForOutputs,
     ]);
     // Notify parent component when PDF overlay state changes
     useEffect(() => {

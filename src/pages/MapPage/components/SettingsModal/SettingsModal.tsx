@@ -14,7 +14,7 @@ import {
 } from "@/redux/settingsActions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Info, Trash2 } from "lucide-react";
+import { X, Info, Trash2, Loader2 } from "lucide-react";
 import {
     Tooltip,
     TooltipContent,
@@ -28,6 +28,11 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+    checkRegionCache,
+    deleteAllCache,
+    deleteRegionCache,
+} from "@/api/cache";
 
 function SettingsModal() {
     const dispatch = useDispatch();
@@ -45,6 +50,12 @@ function SettingsModal() {
     // Cache management state
     const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
     const [regionToDelete, setRegionToDelete] = useState<string | null>(null);
+    const [cacheStatus, setCacheStatus] = useState<Record<string, boolean>>({});
+    const [isLoadingCache, setIsLoadingCache] = useState(false);
+    const [isDeletingAll, setIsDeletingAll] = useState(false);
+    const [isDeletingRegion, setIsDeletingRegion] = useState<string | null>(
+        null
+    );
 
     // Update local state when modal opens
     useEffect(() => {
@@ -53,6 +64,34 @@ function SettingsModal() {
             setTempEndmemberType(endmemberType);
         }
     }, [isSettingsModalOpen, selectedMetrics, endmemberType]);
+
+    // Load cache status when modal opens
+    useEffect(() => {
+        if (isSettingsModalOpen && regions.length > 0) {
+            loadCacheStatus();
+        }
+    }, [isSettingsModalOpen, regions]);
+
+    const loadCacheStatus = async () => {
+        if (regions.length === 0) return;
+
+        setIsLoadingCache(true);
+        try {
+            const regionNames = regions.map((region) => region.name);
+            const response = await checkRegionCache(regionNames);
+            setCacheStatus(response.hasCache);
+        } catch (error) {
+            console.error("Failed to load cache status:", error);
+            // Set all regions as having no cache on error
+            const noCacheStatus: Record<string, boolean> = {};
+            regions.forEach((region) => {
+                noCacheStatus[region.name] = false;
+            });
+            setCacheStatus(noCacheStatus);
+        } finally {
+            setIsLoadingCache(false);
+        }
+    };
 
     const handleClose = () => {
         dispatch(toggleSettingsModal(false));
@@ -93,16 +132,40 @@ function SettingsModal() {
     };
 
     // Cache management handlers
-    const handleDeleteAllCache = () => {
-        console.log("Deleting all cache...");
-        setShowDeleteAllConfirm(false);
-        // TODO: Integrate with API
+    const handleDeleteAllCache = async () => {
+        setIsDeletingAll(true);
+        try {
+            await deleteAllCache();
+            console.log("Successfully deleted all cache");
+            // Refresh cache status
+            await loadCacheStatus();
+        } catch (error) {
+            console.error("Failed to delete all cache:", error);
+        } finally {
+            setIsDeletingAll(false);
+            setShowDeleteAllConfirm(false);
+        }
     };
 
-    const handleDeleteRegionCache = (regionName: string) => {
-        console.log(`Deleting cache for region: ${regionName}`);
-        setRegionToDelete(null);
-        // TODO: Integrate with API
+    const handleDeleteRegionCache = async (regionName: string) => {
+        setIsDeletingRegion(regionName);
+        try {
+            await deleteRegionCache(regionName);
+            console.log(`Successfully deleted cache for region: ${regionName}`);
+            // Update cache status for this region
+            setCacheStatus((prev) => ({
+                ...prev,
+                [regionName]: false,
+            }));
+        } catch (error) {
+            console.error(
+                `Failed to delete cache for region ${regionName}:`,
+                error
+            );
+        } finally {
+            setIsDeletingRegion(null);
+            setRegionToDelete(null);
+        }
     };
 
     if (!isSettingsModalOpen) return null;
@@ -254,10 +317,17 @@ function SettingsModal() {
                             <Button
                                 variant="outline"
                                 onClick={() => setShowDeleteAllConfirm(true)}
+                                disabled={isDeletingAll}
                                 className="w-full flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                             >
-                                <Trash2 className="h-4 w-4" />
-                                Delete All Cache
+                                {isDeletingAll ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                )}
+                                {isDeletingAll
+                                    ? "Deleting..."
+                                    : "Delete All Cache"}
                             </Button>
 
                             {/* Regions Cache List */}
@@ -271,37 +341,66 @@ function SettingsModal() {
                                     className="border rounded-md"
                                 >
                                     <AccordionTrigger className="px-4 py-3 text-sm font-medium">
-                                        Area Cache ({regions.length} areas)
+                                        Area Cache (
+                                        {isLoadingCache
+                                            ? "..."
+                                            : Object.values(cacheStatus).filter(
+                                                  Boolean
+                                              ).length}{" "}
+                                        areas)
                                     </AccordionTrigger>
                                     <AccordionContent className="px-4 pb-3">
                                         <div className="space-y-2">
-                                            {regions.length === 0 ? (
+                                            {isLoadingCache ? (
+                                                <div className="flex items-center justify-center py-4">
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                    <span className="text-sm text-gray-500">
+                                                        Loading cache status...
+                                                    </span>
+                                                </div>
+                                            ) : regions.length === 0 ? (
                                                 <p className="text-sm text-gray-500 italic">
                                                     No areas found
                                                 </p>
                                             ) : (
-                                                regions.map((region) => (
-                                                    <div
-                                                        key={region.name}
-                                                        className="flex items-center justify-between p-2 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors"
-                                                    >
-                                                        <span className="text-sm font-medium">
-                                                            {region.name}
-                                                        </span>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() =>
-                                                                setRegionToDelete(
-                                                                    region.name
-                                                                )
-                                                            }
-                                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                regions
+                                                    .filter(
+                                                        (region) =>
+                                                            cacheStatus[
+                                                                region.name
+                                                            ]
+                                                    )
+                                                    .map((region) => (
+                                                        <div
+                                                            key={region.name}
+                                                            className="flex items-center justify-between p-2 rounded-md bg-gray-50 hover:bg-gray-100 transition-colors"
                                                         >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                ))
+                                                            <span className="text-sm font-medium">
+                                                                {region.name}
+                                                            </span>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    setRegionToDelete(
+                                                                        region.name
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    isDeletingRegion ===
+                                                                    region.name
+                                                                }
+                                                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                            >
+                                                                {isDeletingRegion ===
+                                                                region.name ? (
+                                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                                ) : (
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                )}
+                                                            </Button>
+                                                        </div>
+                                                    ))
                                             )}
                                         </div>
                                     </AccordionContent>
@@ -354,9 +453,17 @@ function SettingsModal() {
                                 </Button>
                                 <Button
                                     onClick={handleDeleteAllCache}
+                                    disabled={isDeletingAll}
                                     className="bg-red-600 hover:bg-red-700 text-white"
                                 >
-                                    Delete All
+                                    {isDeletingAll ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        "Delete All"
+                                    )}
                                 </Button>
                             </div>
                         </div>
@@ -389,9 +496,19 @@ function SettingsModal() {
                                         regionToDelete &&
                                         handleDeleteRegionCache(regionToDelete)
                                     }
+                                    disabled={
+                                        isDeletingRegion === regionToDelete
+                                    }
                                     className="bg-red-600 hover:bg-red-700 text-white"
                                 >
-                                    Delete
+                                    {isDeletingRegion === regionToDelete ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                            Deleting...
+                                        </>
+                                    ) : (
+                                        "Delete"
+                                    )}
                                 </Button>
                             </div>
                         </div>

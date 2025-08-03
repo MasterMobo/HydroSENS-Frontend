@@ -22,7 +22,15 @@ const ALLOWED_LAYER_NAMES = [
     "soil",
 ];
 
-export async function fetchLayerTifs(payload: any): Promise<DateLayers[]> {
+export interface FetchLayerTifsPayload {
+    region_name: string;
+    start_date: string;
+    end_date: string;
+}
+
+export async function fetchLayerTifs(
+    payload: FetchLayerTifsPayload
+): Promise<DateLayers[]> {
     try {
         console.log("Before sending: ", payload);
 
