@@ -11,7 +11,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/redux/store";
 import { setEndDate, setStartDate } from "@/redux/dateActions";
-import { fetchHydrosens } from "@/redux/dashboardActions";
 import Calendar from "./Calendar";
 import { DateRangeConfirmationModal } from "./DateRangeConfirmationModal";
 
@@ -20,19 +19,25 @@ export function DateRangePicker() {
 
     // Track which date we're currently selecting (start or end)
     const [selectingStart, setSelectingStart] = React.useState(true);
-    
+
     // Modal state
-    const [showConfirmationModal, setShowConfirmationModal] = React.useState(false);
+    const [showConfirmationModal, setShowConfirmationModal] =
+        React.useState(false);
     const [pendingDateRange, setPendingDateRange] = React.useState<{
         startDate: number;
         endDate: number;
     } | null>(null);
-    
+
     // Track the original date range before user started making changes
     const [originalDateRange, setOriginalDateRange] = React.useState<{
         startDate: number;
         endDate: number;
     } | null>(null);
+
+    // Track temporary start date during selection (not in Redux yet)
+    const [tempStartDate, setTempStartDate] = React.useState<number | null>(
+        null
+    );
 
     // Get dates from Redux state
     const { startDate, endDate } = useSelector(
@@ -53,13 +58,16 @@ export function DateRangePicker() {
 
     // Convert Redux dates to DateRange format for the ShadCN component
     const dateRange: DateRange | undefined = React.useMemo(() => {
-        if (!startDate && !endDate) return undefined;
+        // If we have a temporary start date, use it for display
+        const displayStartDate = tempStartDate || startDate;
+
+        if (!displayStartDate && !endDate) return undefined;
 
         return {
-            from: startDate ? new Date(startDate) : undefined,
+            from: displayStartDate ? new Date(displayStartDate) : undefined,
             to: endDate ? new Date(endDate) : undefined,
         };
-    }, [startDate, endDate]);
+    }, [startDate, endDate, tempStartDate]);
 
     // Check if we have a valid date range (both start and end dates)
     const hasValidDateRange = (start: number, end: number) => {
@@ -69,26 +77,25 @@ export function DateRangePicker() {
     // Handle single date clicks for sequential selection
     const handleDateClick = (date: Date) => {
         const clickedTimestamp = date.getTime();
-        
+
         if (selectingStart) {
             // First click - store original date range before making changes
             if (startDate && endDate) {
                 setOriginalDateRange({
                     startDate: startDate,
-                    endDate: endDate
+                    endDate: endDate,
                 });
             }
-            
-            // Set start date and prepare for end date selection
-            dispatch(setStartDate(clickedTimestamp));
-            dispatch(setEndDate(clickedTimestamp)); // Temporarily set end date to same as start
+
+            // Set temporary start date (not in Redux yet) and prepare for end date selection
+            setTempStartDate(clickedTimestamp);
             setSelectingStart(false);
         } else {
             // Second click - determine final date range
-            const currentStartDate = new Date(startDate!);
+            const currentStartDate = new Date(tempStartDate || startDate!);
             let finalStartDate: number;
             let finalEndDate: number;
-            
+
             if (clickedTimestamp >= currentStartDate.getTime()) {
                 // If clicked date is after or equal to start date, it becomes end date
                 finalStartDate = currentStartDate.getTime();
@@ -100,11 +107,14 @@ export function DateRangePicker() {
             }
 
             // Check if we have a valid range (different dates) and region is selected
-            if (hasValidDateRange(finalStartDate, finalEndDate) && selectedRegionIndex !== null) {
+            if (
+                hasValidDateRange(finalStartDate, finalEndDate) &&
+                selectedRegionIndex !== null
+            ) {
                 // Show confirmation modal instead of directly updating Redux
                 setPendingDateRange({
                     startDate: finalStartDate,
-                    endDate: finalEndDate
+                    endDate: finalEndDate,
                 });
                 setShowConfirmationModal(true);
                 // Don't update Redux state yet - wait for confirmation
@@ -113,6 +123,7 @@ export function DateRangePicker() {
                 dispatch(setStartDate(finalStartDate));
                 dispatch(setEndDate(finalEndDate));
                 setSelectingStart(true);
+                setTempStartDate(null); // Clear temporary start date
                 // Clear original range since we're not showing modal
                 setOriginalDateRange(null);
             }
@@ -125,15 +136,16 @@ export function DateRangePicker() {
             // Update Redux with the confirmed date range
             dispatch(setStartDate(pendingDateRange.startDate));
             dispatch(setEndDate(pendingDateRange.endDate));
-            
+
             // Close modal and reset states
             setShowConfirmationModal(false);
             setPendingDateRange(null);
             setOriginalDateRange(null); // Clear original range since change was confirmed
-            
+            setTempStartDate(null); // Clear temporary start date
+
             // IMPORTANT: Reset selection state so user can select new ranges
             setSelectingStart(true);
-            
+
             // Trigger the API call
             // Note: We'll trigger this after Redux state is updated via useEffect in RegionDashboard
         }
@@ -143,27 +155,33 @@ export function DateRangePicker() {
     const handleCancelAnalysis = () => {
         setShowConfirmationModal(false);
         setPendingDateRange(null);
-        
+
         // Restore the original date range before any changes were made
         if (originalDateRange) {
             dispatch(setStartDate(originalDateRange.startDate));
             dispatch(setEndDate(originalDateRange.endDate));
             setOriginalDateRange(null);
         }
-        
-        // Reset the selection state to start over
+
+        // Clear temporary start date and reset the selection state to start over
+        setTempStartDate(null);
         setSelectingStart(true);
     };
 
     // Get current region name for modal
     const currentRegionName = React.useMemo(() => {
-        if (selectedRegionIndex !== null && regions && regions[selectedRegionIndex]) {
+        if (
+            selectedRegionIndex !== null &&
+            regions &&
+            regions[selectedRegionIndex]
+        ) {
             return regions[selectedRegionIndex].name;
         }
         return "Unknown Region";
     }, [selectedRegionIndex, regions]);
 
     // Handle range selection - we'll intercept and use our custom logic
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const handleRangeSelect = (range: DateRange | undefined) => {
         // We don't use the default range selection, instead we handle clicks manually
         // This function will be called but we'll ignore it in favor of our custom logic
@@ -180,10 +198,15 @@ export function DateRangePicker() {
                             className="font-normal py-6.5 rounded-3xl"
                         >
                             <div className="bg-primary p-2 rounded-sm mr-0.5">
-                                <CalendarIcon className=" h-4 w-4" color="white" />
+                                <CalendarIcon
+                                    className=" h-4 w-4"
+                                    color="white"
+                                />
                             </div>
                             {dateRange?.from ? (
-                                dateRange.to && dateRange.from.getTime() !== dateRange.to.getTime() ? (
+                                dateRange.to &&
+                                dateRange.from.getTime() !==
+                                    dateRange.to.getTime() ? (
                                     <>
                                         {format(dateRange.from, "LLL dd, y")} -{" "}
                                         {format(dateRange.to, "LLL dd, y")}
