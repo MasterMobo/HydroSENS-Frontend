@@ -1,5 +1,5 @@
-import React from "react";
-import { MapContainer, TileLayer, ZoomControl } from "react-leaflet";
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../../../redux/store";
 import { selectRegion } from "../../../../redux/regionActions";
@@ -11,12 +11,29 @@ import LeafletMapController from "./LeafletMapController";
 import { useDrawingControl } from "../RegionDrawing/useDrawingControl";
 import FixedTifLayer from "./FixedTifLayer";
 
+// Component to handle map center updates
+function MapCenterUpdater({ center }: { center: [number, number] }) {
+    const map = useMap();
+
+    useEffect(() => {
+        map.setView(center, map.getZoom());
+    }, [center, map]);
+
+    return null;
+}
+
 function LeafletMap() {
     const dispatch = useDispatch();
     const { regions, selectedRegionIndex } = useSelector(
         (state: RootState) => state.regionState
     );
     const { viewMode } = useSelector((state: RootState) => state.viewModeState);
+
+    // State for user location
+    const [userLocation, setUserLocation] = useState<[number, number]>([
+        52.52, 13.405,
+    ]);
+    const [locationLoaded, setLocationLoaded] = useState(false);
 
     const {
         currentDrawingMode,
@@ -25,10 +42,35 @@ function LeafletMap() {
         handleDrawingModeChange,
         handleShapeCreated,
         handleModeComplete,
-        handleEditMode,
         handleDeleteShape,
         handleFinishEdit,
     } = useDrawingControl();
+
+    // Get user location on component mount
+    useEffect(() => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setUserLocation([latitude, longitude]);
+                    setLocationLoaded(true);
+                },
+                (error) => {
+                    console.warn("Error getting location:", error);
+                    // Keep default location if geolocation fails
+                    setLocationLoaded(true);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000,
+                }
+            );
+        } else {
+            console.warn("Geolocation is not supported by this browser");
+            setLocationLoaded(true);
+        }
+    }, []);
 
     // Handler for polygon click
     const handleRegionClick = (index: number) => {
@@ -38,7 +80,7 @@ function LeafletMap() {
     return (
         <>
             <MapContainer
-                center={[52.52, 13.405]}
+                center={userLocation}
                 zoom={12}
                 className="absolute h-full w-full z-0"
                 zoomControl={false}
@@ -47,6 +89,10 @@ function LeafletMap() {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+
+                {/* Update map center when user location is loaded */}
+                {locationLoaded && <MapCenterUpdater center={userLocation} />}
+
                 <RegionPolygons
                     regions={regions}
                     onRegionClicked={
@@ -81,7 +127,6 @@ function LeafletMap() {
                     onDrawingModeChange={handleDrawingModeChange}
                     currentDrawingMode={currentDrawingMode}
                     hasActiveShape={hasActiveShape}
-                    onEditMode={handleEditMode}
                     onDeleteShape={handleDeleteShape}
                     onFinishEdit={handleFinishEdit}
                 />
