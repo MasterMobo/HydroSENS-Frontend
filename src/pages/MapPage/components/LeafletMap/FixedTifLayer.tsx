@@ -10,6 +10,12 @@ interface FixedTifLayerProps {
     opacity?: number;
 }
 
+// Type definitions for layer file
+interface LayerFile {
+    name: string;
+    url: string;
+}
+
 // Helper function to interpolate between multiple colors in a palette
 const interpolateColorArray = (
     colors: number[][],
@@ -86,7 +92,10 @@ const getLayerColor = (
 const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
     const map = useMap();
     const dispatch = useDispatch<AppDispatch>();
-    const layerRef = useRef<any>(null);
+    const layerRef = useRef<{
+        addTo: (map: any) => void;
+        remove: () => void;
+    } | null>(null);
     const layerState = useSelector((state: RootState) => state.layers);
     const regionState = useSelector((state: RootState) => state.regionState);
 
@@ -157,7 +166,7 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
         dispatch,
     ]);
 
-    const loadTifLayer = async (layerFile: any, isMounted: boolean) => {
+    const loadTifLayer = async (layerFile: LayerFile, isMounted: boolean) => {
         try {
             console.log(`Loading TIF layer: ${layerFile.name}`);
 
@@ -227,35 +236,83 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
                 opacity: opacity,
                 pane: "tifLayer", // Use custom pane with higher z-index
                 pixelValuesToColorFn: (pixelValues: number[]) => {
-                    const pixelValue = pixelValues[0];
-
-                    // Handle no-data values
+                    // Check if this is a multi-band RGB image (like TCI.tif)
                     if (
-                        pixelValue === georaster.noDataValue ||
-                        pixelValue === null ||
-                        pixelValue === undefined ||
-                        isNaN(pixelValue)
+                        pixelValues.length >= 3 &&
+                        layerFile.name.toLowerCase().includes("tci")
                     ) {
-                        return null;
+                        const [red, green, blue] = pixelValues;
+
+                        // Handle no-data values for any band
+                        if (
+                            red === georaster.noDataValue ||
+                            green === georaster.noDataValue ||
+                            blue === georaster.noDataValue ||
+                            red === null ||
+                            green === null ||
+                            blue === null ||
+                            red === undefined ||
+                            green === undefined ||
+                            blue === undefined ||
+                            isNaN(red) ||
+                            isNaN(green) ||
+                            isNaN(blue)
+                        ) {
+                            return null;
+                        }
+
+                        // Normalize RGB values to 0-255 range
+                        // Assuming the input values are in the typical range for satellite imagery
+                        const normalizeBand = (
+                            value: number,
+                            bandIndex: number
+                        ) => {
+                            const min = georaster.mins[bandIndex];
+                            const max = georaster.maxs[bandIndex];
+                            const normalized = (value - min) / (max - min);
+                            return Math.max(
+                                0,
+                                Math.min(255, Math.round(normalized * 255))
+                            );
+                        };
+
+                        const r = normalizeBand(red, 0);
+                        const g = normalizeBand(green, 1);
+                        const b = normalizeBand(blue, 2);
+
+                        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                    } else {
+                        // Handle single-band images (existing logic)
+                        const pixelValue = pixelValues[0];
+
+                        // Handle no-data values
+                        if (
+                            pixelValue === georaster.noDataValue ||
+                            pixelValue === null ||
+                            pixelValue === undefined ||
+                            isNaN(pixelValue)
+                        ) {
+                            return null;
+                        }
+
+                        // Use the actual data range from the georaster
+                        const min = georaster.mins[0];
+                        const max = georaster.maxs[0];
+                        const normalized = (pixelValue - min) / (max - min);
+
+                        // Clamp normalized value between 0 and 1
+                        const clampedNormalized = Math.max(
+                            0,
+                            Math.min(1, normalized)
+                        );
+
+                        // Get color based on layer type and normalized value
+                        return getLayerColor(
+                            layerFile.name,
+                            clampedNormalized,
+                            opacity
+                        );
                     }
-
-                    // Use the actual data range from the georaster
-                    const min = georaster.mins[0];
-                    const max = georaster.maxs[0];
-                    const normalized = (pixelValue - min) / (max - min);
-
-                    // Clamp normalized value between 0 and 1
-                    const clampedNormalized = Math.max(
-                        0,
-                        Math.min(1, normalized)
-                    );
-
-                    // Get color based on layer type and normalized value
-                    return getLayerColor(
-                        layerFile.name,
-                        clampedNormalized,
-                        opacity
-                    );
                 },
                 resolution: 256,
                 debugLevel: 1,
@@ -274,7 +331,7 @@ const FixedTifLayer: React.FC<FixedTifLayerProps> = ({ opacity = 0.8 }) => {
                 );
             });
 
-            geoRasterLayer.on("error", (error: any) => {
+            geoRasterLayer.on("error", (error: unknown) => {
                 console.error(
                     `❌ Error with TIF layer ${layerFile.name}:`,
                     error
