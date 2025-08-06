@@ -40,6 +40,7 @@ const LAYER_DISPLAY_NAMES = {
     NDVI: "NDVI",
     Vegetation_Health: "Vegetation Health",
     soil: "Soil Fraction",
+    TCI: "True Color",
 };
 
 // Helper function to get display name for a layer
@@ -100,6 +101,12 @@ const LayerLegend: React.FC<{
     dataRange?: { min: number; max: number };
 }> = ({ layerName, dataRange }) => {
     const baseName = layerName.replace(".tif", "");
+
+    // Don't show legend for True Color layer
+    if (baseName === "TCI") {
+        return null;
+    }
+
     const palette = COLOR_PALETTES[baseName as keyof typeof COLOR_PALETTES];
     const rangeConfig = LAYER_RANGES[baseName as keyof typeof LAYER_RANGES];
 

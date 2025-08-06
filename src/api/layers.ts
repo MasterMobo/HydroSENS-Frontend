@@ -20,6 +20,7 @@ const ALLOWED_LAYER_NAMES = [
     "NDVI",
     "Vegetation_Health",
     "soil",
+    "TCI",
 ];
 
 export interface FetchLayerTifsPayload {
