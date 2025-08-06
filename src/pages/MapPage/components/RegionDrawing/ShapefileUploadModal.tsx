@@ -419,8 +419,8 @@ export default function ShapefileUploadModal({
                             <li>• Required: .shp, .shx, .dbf (± .prj)</li>
                             <li>• Polygon or MultiPolygon</li>
                             <li>
-                                • Multiple features are split into separate
-                                areas
+                                • Note: Multiple features are split into
+                                separate areas
                             </li>
                         </ul>
                     </div>

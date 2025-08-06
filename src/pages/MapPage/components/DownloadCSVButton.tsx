@@ -3,7 +3,7 @@ import { Download, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
+import { RootState } from "@/redux/store";
 import { format } from "date-fns";
 
 function DownloadCSVButton() {
@@ -18,7 +18,7 @@ function DownloadCSVButton() {
     );
 
     // Generate filename based on selected region and date range
-    const generateFilename = () => {
+    const generateFilename = (suffix: string) => {
         const selectedRegion =
             selectedRegionIndex !== null ? regions[selectedRegionIndex] : null;
         const regionName = selectedRegion?.name || "Export";
@@ -30,7 +30,58 @@ function DownloadCSVButton() {
         // Clean region name (remove special characters that might cause issues in filenames)
         const cleanRegionName = regionName.replace(/[^a-zA-Z0-9]/g, "_");
 
-        return `${cleanRegionName}_${formattedStartDate}_${formattedEndDate}.csv`;
+        return `${cleanRegionName}_${formattedStartDate}_${formattedEndDate}_${suffix}.csv`;
+    };
+
+    // Function to parse CSV and separate into two files
+    const parseAndSeparateCSV = (csvData: string) => {
+        const lines = csvData.trim().split("\n");
+        const headers = lines[0].split(",");
+
+        // Define which columns go to which file
+        const weatherColumns = ["temperature", "precipitation"];
+        const otherColumns = headers.filter(
+            (col) => !weatherColumns.includes(col)
+        );
+
+        // Create weather CSV (temperature and precipitation only)
+        const weatherHeaders = ["date", ...weatherColumns];
+        const weatherRows = lines.slice(1).map((line) => {
+            const values = line.split(",");
+            const date = values[0];
+            const temp = values[headers.indexOf("temperature")];
+            const precip = values[headers.indexOf("precipitation")];
+            return `${date},${temp},${precip}`;
+        });
+        const weatherCSV = [weatherHeaders.join(","), ...weatherRows].join(
+            "\n"
+        );
+
+        // Create other data CSV (remaining columns)
+        const otherRows = lines.slice(1).map((line) => {
+            const values = line.split(",");
+            return otherColumns
+                .map((col) => values[headers.indexOf(col)])
+                .join(",");
+        });
+        const otherCSV = [otherColumns.join(","), ...otherRows].join("\n");
+
+        return { weatherCSV, otherCSV };
+    };
+
+    // Function to download a CSV file
+    const downloadCSV = (csvContent: string, filename: string) => {
+        const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+        });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
     };
 
     const handleDownload = async () => {
@@ -52,28 +103,23 @@ function DownloadCSVButton() {
                     end_date: formatLocal(new Date(endDate)),
                 },
                 {
-                    responseType: "blob", // Important for file downloads
+                    responseType: "text", // Changed to text to parse CSV
                     headers: {
                         Accept: "text/csv",
                     },
                 }
             );
 
-            // Create blob link to download
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement("a");
-            link.href = url;
+            // Parse the CSV data and separate into two files
+            const { weatherCSV, otherCSV } = parseAndSeparateCSV(response.data);
 
-            // Use generated filename based on region and dates
-            const filename = generateFilename();
+            // Download the remaining columns file first (as requested)
+            const otherFilename = generateFilename("main_data");
+            downloadCSV(otherCSV, otherFilename);
 
-            link.setAttribute("download", filename);
-            document.body.appendChild(link);
-            link.click();
-
-            // Cleanup
-            link.remove();
-            window.URL.revokeObjectURL(url);
+            // Then download the weather data file
+            const weatherFilename = generateFilename("weather_data");
+            downloadCSV(weatherCSV, weatherFilename);
         } catch (error) {
             console.error("Error downloading CSV:", error);
             // You might want to show a toast notification or error message here

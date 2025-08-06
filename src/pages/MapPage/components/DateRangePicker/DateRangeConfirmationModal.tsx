@@ -52,11 +52,10 @@ export function DateRangeConfirmationModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-blue-600" />
-                        Analyze Region
+                        Analyze Area
                     </DialogTitle>
                     <DialogDescription>
-                        Confirm your analysis parameters for the selected
-                        region.
+                        Confirm your analysis parameters for the selected area.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -64,7 +63,7 @@ export function DateRangeConfirmationModal({
                     <div className="bg-slate-50 rounded-lg p-4 space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-slate-700">
-                                Region:
+                                Area:
                             </span>
                             <span className="text-sm text-slate-900 font-semibold">
                                 {regionName}
