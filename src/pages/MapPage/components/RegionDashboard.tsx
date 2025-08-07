@@ -35,7 +35,7 @@ const metricMeta = {
     },
     "vegetation-fraction": {
         label: "Vegetation Fraction",
-        color: "#4ade80",
+        color: "#479e15",
         min: 0,
         max: 1,
         unit: undefined,
