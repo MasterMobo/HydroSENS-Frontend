@@ -43,7 +43,7 @@ const metricMeta = {
     },
     "soil-fraction": {
         label: "Soil Fraction",
-        color: "#60a5fa",
+        color: "#d95632",
         min: 0,
         max: 1,
         unit: undefined,
@@ -51,7 +51,7 @@ const metricMeta = {
     },
     precipitation: {
         label: "Precipitation",
-        color: "#facc15",
+        color: "#2a72d1",
         min: 0,
         max: 100,
         unit: "mm",
